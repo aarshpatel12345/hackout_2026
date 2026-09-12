@@ -114,16 +114,16 @@ button {
 }
 
 /* Bootstrap Validation Enhancements for Dark Theme */
-.form-control.is-invalid,
-.was-validated .form-control:invalid {
+.is-invalid,
+.was-validated :invalid {
   border-color: #FF5C5C !important;
   box-shadow: 0 0 15px rgba(255, 92, 92, 0.3) !important;
   background-image: none !important;
   border-radius: 12px !important;
 }
 
-.form-control.is-valid,
-.was-validated .form-control:valid {
+.is-valid,
+.was-validated :valid {
   border-color: #20D68A !important;
   box-shadow: 0 0 12px rgba(32, 214, 138, 0.25) !important;
   background-image: none !important;
@@ -135,3 +135,4 @@ button {
   font-size: 0.75rem !important;
   margin-top: 0.25rem !important;
 }
+
