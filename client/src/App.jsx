@@ -10,20 +10,30 @@ import AuthPage from "./pages/AuthPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import Dashboard from "./pages/Dashboard";
 import OnboardingPage from "./pages/OnboardingPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
 
 function App() {
 	return (
 		<AuthProvider>
 			<Router>
 				<Routes>
-					<Route path="/" element={<RegisterPage />} />
-					<Route path="/register" element={<RegisterPage />} />
-					<Route path="/signup" element={<RegisterPage />} />
-					<Route path="/login" element={<AuthPage />} />
-					<Route path="/forgot-password" element={<ForgotPasswordPage />} />
-					<Route path="/onboarding" element={<OnboardingPage />} />
-					<Route path="/dashboard" element={<Dashboard />} />
-					<Route path="*" element={<Navigate to="/register" replace />} />
+					{/* Public Routes - Only accessible when NOT logged in */}
+					<Route element={<PublicRoute />}>
+						<Route path="/" element={<Navigate to="/login" replace />} />
+						<Route path="/register" element={<RegisterPage />} />
+						<Route path="/signup" element={<RegisterPage />} />
+						<Route path="/login" element={<AuthPage />} />
+						<Route path="/forgot-password" element={<ForgotPasswordPage />} />
+					</Route>
+
+					{/* Protected Routes - Only accessible when logged in */}
+					<Route element={<ProtectedRoute />}>
+						<Route path="/onboarding" element={<OnboardingPage />} />
+						<Route path="/dashboard" element={<Dashboard />} />
+					</Route>
+
+					<Route path="*" element={<Navigate to="/login" replace />} />
 				</Routes>
 			</Router>
 		</AuthProvider>
