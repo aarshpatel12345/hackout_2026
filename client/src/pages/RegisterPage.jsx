@@ -1,26 +1,28 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Check } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import ParticleBackground from "../components/ParticleBackground";
 import { useAuth } from "../context/AuthContext";
 
-export default function AuthPage() {
+export default function RegisterPage() {
 	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [validated, setValidated] = useState(false);
 	const [fieldErrors, setFieldErrors] = useState({});
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [rememberMe, setRememberMe] = useState(false);
 
 	const navigate = useNavigate();
 	const auth = useAuth();
-	const login = auth?.login;
+	const register = auth?.register;
 	const authError = auth?.error;
 	const clearError = auth?.clearError;
 
 	const [formData, setFormData] = useState({
+		name: "",
 		email: "",
 		password: "",
+		confirmPassword: "",
 	});
 
 	const handleChange = (e) => {
@@ -32,6 +34,9 @@ export default function AuthPage() {
 
 	const validateForm = () => {
 		const errors = {};
+		if (!formData.name.trim()) {
+			errors.name = "Full name is required";
+		}
 		if (!formData.email.trim()) {
 			errors.email = "Email address is required";
 		} else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -39,6 +44,13 @@ export default function AuthPage() {
 		}
 		if (!formData.password) {
 			errors.password = "Password is required";
+		} else if (formData.password.length < 6) {
+			errors.password = "Password must be at least 6 characters";
+		}
+		if (!formData.confirmPassword) {
+			errors.confirmPassword = "Confirm password is required";
+		} else if (formData.password !== formData.confirmPassword) {
+			errors.confirmPassword = "Passwords do not match";
 		}
 		return errors;
 	};
@@ -55,20 +67,16 @@ export default function AuthPage() {
 
 		setIsSubmitting(true);
 		try {
-			let res;
-			if (login) {
-				res = await login({
+			if (register) {
+				await register({
+					name: formData.name,
 					email: formData.email,
 					password: formData.password,
 				});
 			}
-			if (res?.isOnboarded) {
-				navigate("/dashboard");
-			} else {
-				navigate("/onboarding");
-			}
+			navigate("/onboarding");
 		} catch (err) {
-			// Handled by auth context
+			// Handled by context
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -127,10 +135,10 @@ export default function AuthPage() {
 					</div>
 
 					<h1 className="text-xl sm:text-2xl font-semibold text-[#EAF7F2] tracking-tight mb-1 text-center">
-						Welcome Back
+						Create Your Account
 					</h1>
 					<p className="text-xs text-[#86A399] text-center max-w-xs leading-normal">
-						Sign in to access your Carbon Trace dashboard.
+						Join the movement for a more transparent and sustainable future.
 					</p>
 				</div>
 
@@ -145,12 +153,38 @@ export default function AuthPage() {
 					</motion.div>
 				)}
 
-				{/* Login Form with Bootstrap Validation */}
+				{/* Registration Form with Bootstrap Validation */}
 				<form
 					onSubmit={handleSubmit}
 					noValidate
 					className={`space-y-3 ${validated ? "was-validated" : ""}`}
 				>
+					{/* FULL NAME */}
+					<div className="space-y-1">
+						<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-[#86A399]">
+							Full Name
+						</label>
+						<div className="relative flex items-center">
+							<div className="absolute left-3.5 text-[#86A399] pointer-events-none z-10">
+								<User size={16} />
+							</div>
+							<input
+								type="text"
+								name="name"
+								required
+								value={formData.name}
+								onChange={handleChange}
+								placeholder="Enter your full name"
+								className={`w-full bg-[#04120E]/90 border border-[#16362E] text-[#EAF7F2] placeholder-[#86A399]/40 rounded-xl pl-9 pr-3 py-2 text-xs input-glow transition-all outline-none ${
+									fieldErrors.name ? "is-invalid" : ""
+								}`}
+							/>
+						</div>
+						{fieldErrors.name && (
+							<div className="invalid-feedback d-block">{fieldErrors.name}</div>
+						)}
+					</div>
+
 					{/* EMAIL ADDRESS */}
 					<div className="space-y-1">
 						<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-[#86A399]">
@@ -167,7 +201,7 @@ export default function AuthPage() {
 								value={formData.email}
 								onChange={handleChange}
 								placeholder="Enter your email address"
-								className={`w-full bg-[#04120E]/90 border border-[#16362E] text-[#EAF7F2] placeholder-[#86A399]/40 rounded-xl pl-9 pr-3 py-2.5 text-xs input-glow transition-all outline-none ${
+								className={`w-full bg-[#04120E]/90 border border-[#16362E] text-[#EAF7F2] placeholder-[#86A399]/40 rounded-xl pl-9 pr-3 py-2 text-xs input-glow transition-all outline-none ${
 									fieldErrors.email ? "is-invalid" : ""
 								}`}
 							/>
@@ -190,10 +224,11 @@ export default function AuthPage() {
 								type={showPassword ? "text" : "password"}
 								name="password"
 								required
+								minLength={6}
 								value={formData.password}
 								onChange={handleChange}
-								placeholder="Enter your password"
-								className={`w-full bg-[#04120E]/90 border border-[#16362E] text-[#EAF7F2] placeholder-[#86A399]/40 rounded-xl pl-9 pr-9 py-2.5 text-xs input-glow transition-all outline-none ${
+								placeholder="Create a password"
+								className={`w-full bg-[#04120E]/90 border border-[#16362E] text-[#EAF7F2] placeholder-[#86A399]/40 rounded-xl pl-9 pr-9 py-2 text-xs input-glow transition-all outline-none ${
 									fieldErrors.password ? "is-invalid" : ""
 								}`}
 							/>
@@ -210,34 +245,39 @@ export default function AuthPage() {
 						)}
 					</div>
 
-					{/* REMEMBER ME & FORGOT PASSWORD */}
-					<div className="flex items-center justify-between text-xs pt-0.5 select-none">
-						<label className="flex items-center space-x-2 cursor-pointer text-[#86A399] hover:text-[#EAF7F2] transition-colors group">
-							<div className="relative flex items-center justify-center shrink-0 w-4 h-4">
-								<input
-									type="checkbox"
-									id="rememberMeCheckbox"
-									checked={rememberMe}
-									onChange={(e) => setRememberMe(e.target.checked)}
-									className="w-4 h-4 rounded-md appearance-none cursor-pointer border border-[#16362E] bg-[#04120E]/90 checked:bg-[#20D68A] checked:border-[#20D68A] transition-all outline-none group-hover:border-[#20D68A]/60"
-								/>
-								{rememberMe && (
-									<Check
-										size={11}
-										className="absolute pointer-events-none text-[#030908] stroke-[3]"
-									/>
-								)}
-							</div>
-							<span className="text-xs font-medium leading-none text-[#86A399] group-hover:text-[#EAF7F2] whitespace-nowrap">
-								Remember Me
-							</span>
+					{/* CONFIRM PASSWORD */}
+					<div className="space-y-1">
+						<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-[#86A399]">
+							Confirm Password
 						</label>
-						<Link
-							to="/forgot-password"
-							className="font-medium text-[#20D68A] hover:underline hover:text-[#38D9E8] transition-colors whitespace-nowrap"
-						>
-							Forgot Password?
-						</Link>
+						<div className="relative flex items-center">
+							<div className="absolute left-3.5 text-[#86A399] pointer-events-none z-10">
+								<Lock size={16} />
+							</div>
+							<input
+								type={showConfirmPassword ? "text" : "password"}
+								name="confirmPassword"
+								required
+								value={formData.confirmPassword}
+								onChange={handleChange}
+								placeholder="Confirm your password"
+								className={`w-full bg-[#04120E]/90 border border-[#16362E] text-[#EAF7F2] placeholder-[#86A399]/40 rounded-xl pl-9 pr-9 py-2 text-xs input-glow transition-all outline-none ${
+									fieldErrors.confirmPassword ? "is-invalid" : ""
+								}`}
+							/>
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+								className="absolute right-3.5 text-[#86A399] hover:text-[#20D68A] transition-colors focus:outline-none z-10 cursor-pointer"
+							>
+								{showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+							</button>
+						</div>
+						{fieldErrors.confirmPassword && (
+							<div className="invalid-feedback d-block">
+								{fieldErrors.confirmPassword}
+							</div>
+						)}
 					</div>
 
 					{/* DIRECT OUTLINE TO SOLID FILL BUTTON (NO HOVER TRANSITION) */}
@@ -247,20 +287,20 @@ export default function AuthPage() {
 							disabled={isSubmitting}
 							className="btn-direct-fill w-full rounded-xl py-2.5 px-5 text-xs font-semibold flex items-center justify-center space-x-2 cursor-pointer shadow-md"
 						>
-							<span>{isSubmitting ? "Signing In..." : "Sign In"}</span>
+							<span>{isSubmitting ? "Creating Account..." : "Create Account"}</span>
 							<ArrowRight size={15} className="stroke-[2.5]" />
 						</button>
 					</div>
 				</form>
 
-				{/* React Router Navigation to Sign Up */}
+				{/* React Router Navigation to Sign In */}
 				<div className="mt-4 text-center text-xs text-[#86A399]">
-					Don't have an account?{" "}
+					Already have an account?{" "}
 					<Link
-						to="/register"
+						to="/login"
 						className="text-[#20D68A] font-semibold hover:underline transition-colors ml-0.5"
 					>
-						Sign up
+						Sign in
 					</Link>
 				</div>
 

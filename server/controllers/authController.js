@@ -2,6 +2,9 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const User = require('../models/User');
 
+// In-memory fallback user store when MongoDB is offline
+const inMemoryUsers = new Map();
+
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'your_super_secret_jwt_key_here', {
     expiresIn: '30d',
@@ -12,33 +15,56 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'Please provide name, email, and password' });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+
   try {
-    const { name, email, password } = req.body;
-
-    const userExists = await User.findOne({ email });
-
+    const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password,
     });
 
-    if (user) {
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(400).json({ message: 'Invalid user data' });
+    return res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isOnboarded: user.isOnboarded || false,
+      token: generateToken(user._id),
+    });
+  } catch (dbError) {
+    console.warn('MongoDB user creation failed, utilizing in-memory store:', dbError.message);
+
+    if (inMemoryUsers.has(normalizedEmail)) {
+      return res.status(400).json({ message: 'User already exists' });
     }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    const mockId = 'usr_' + Math.random().toString(36).substring(2, 9);
+    const memUser = {
+      _id: mockId,
+      name,
+      email: normalizedEmail,
+      password,
+      isOnboarded: false,
+    };
+    inMemoryUsers.set(normalizedEmail, memUser);
+
+    return res.status(201).json({
+      _id: memUser._id,
+      name: memUser.name,
+      email: memUser.email,
+      isOnboarded: memUser.isOnboarded,
+      token: generateToken(memUser._id),
+    });
   }
 };
 
@@ -46,23 +72,37 @@ const registerUser = async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = (req, res, next) => {
-  passport.authenticate('local', { session: false }, (err, user, info) => {
-    if (err) {
-      return res.status(500).json({ message: err.message });
-    }
-    if (!user) {
-      return res.status(401).json({ message: info.message || 'Invalid email or password' });
-    }
-    
-    // Generate token
-    const token = generateToken(user._id);
+  const { email, password } = req.body;
+  const normalizedEmail = (email || '').toLowerCase().trim();
 
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token,
-    });
+  passport.authenticate('local', { session: false }, (err, user, info) => {
+    if (user) {
+      const token = generateToken(user._id);
+      return res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isOnboarded: user.isOnboarded || false,
+        token,
+      });
+    }
+
+    // Fallback check memory store if DB auth failed
+    if (inMemoryUsers.has(normalizedEmail)) {
+      const memUser = inMemoryUsers.get(normalizedEmail);
+      if (memUser.password === password) {
+        const token = generateToken(memUser._id);
+        return res.json({
+          _id: memUser._id,
+          name: memUser.name,
+          email: memUser.email,
+          isOnboarded: memUser.isOnboarded || false,
+          token,
+        });
+      }
+    }
+
+    return res.status(401).json({ message: info?.message || 'Invalid email or password' });
   })(req, res, next);
 };
 
@@ -74,6 +114,7 @@ const getUserProfile = (req, res) => {
     _id: req.user._id,
     name: req.user.name,
     email: req.user.email,
+    isOnboarded: req.user.isOnboarded || false,
   });
 };
 

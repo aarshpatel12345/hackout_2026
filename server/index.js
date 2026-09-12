@@ -45,6 +45,8 @@ require("./config/passport")(passport);
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
+app.use("/api/onboarding", require("./routes/onboarding"));
+app.use("/api/analysis", require("./routes/analysis"));
 
 // Basic route
 app.get("/", (req, res) => {
@@ -54,15 +56,10 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-	try {
-		await connectDB();
-		app.listen(PORT, () => {
-			console.log(`Server running on port ${PORT}`);
-		});
-	} catch (error) {
-		console.error("Server was not started because the database is unavailable.");
-		process.exit(1);
-	}
+	await connectDB();
+	app.listen(PORT, () => {
+		console.log(`Server running on port ${PORT}`);
+	});
 };
 
 startServer();

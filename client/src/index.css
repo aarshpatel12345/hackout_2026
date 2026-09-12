@@ -21,6 +21,117 @@
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background-color: #071312;
+  background-color: #030908;
   color: #EAF7F2;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Global Scrollbar Hiding */
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+  background: transparent !important;
+}
+html {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+
+/* Global Link Override - Theme Green Color (Fix Bootstrap Blue Links) */
+a {
+  color: #20D68A !important;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #38D9E8 !important;
+  text-decoration: underline !important;
+}
+
+/* Custom Green Border Glow Shadow Utilities */
+.border-glow {
+  border: 1px solid rgba(32, 214, 138, 0.35) !important;
+  box-shadow: 0 0 25px rgba(32, 214, 138, 0.2), inset 0 0 10px rgba(32, 214, 138, 0.05) !important;
+  border-radius: 20px !important;
+}
+
+.border-glow-intense {
+  border: 1.5px solid #20D68A !important;
+  box-shadow: 0 0 30px rgba(32, 214, 138, 0.4), 0 0 10px rgba(32, 214, 138, 0.3) !important;
+  border-radius: 24px !important;
+}
+
+.input-glow:focus {
+  border-color: #20D68A !important;
+  box-shadow: 0 0 15px rgba(32, 214, 138, 0.4) !important;
+  outline: none !important;
+}
+
+/* Glassmorphic card styling with smooth rounded corners */
+.glass-card {
+  background: rgba(7, 25, 22, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid #16362E;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card-lg {
+  background: rgba(7, 25, 22, 0.88);
+  backdrop-filter: blur(24px);
+  border: 1px solid #16362E;
+  border-radius: 24px;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Ensure inputs, selects, buttons have smooth border-radius */
+input, select, textarea {
+  border-radius: 12px !important;
+}
+
+button {
+  border-radius: 12px;
+}
+
+/* Direct Outline to Solid Fill Button - Instant Hover (No Transition) with Rounded Radius */
+.btn-direct-fill {
+  background-color: transparent !important;
+  color: #20D68A !important;
+  border: 2px solid #20D68A !important;
+  border-radius: 14px !important;
+  box-shadow: 0 0 15px rgba(32, 214, 138, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-direct-fill:hover {
+  background-color: #20D68A !important;
+  color: #030908 !important;
+  border-color: #20D68A !important;
+  box-shadow: 0 0 30px rgba(32, 214, 138, 0.6) !important;
+}
+
+/* Bootstrap Validation Enhancements for Dark Theme */
+.form-control.is-invalid,
+.was-validated .form-control:invalid {
+  border-color: #FF5C5C !important;
+  box-shadow: 0 0 15px rgba(255, 92, 92, 0.3) !important;
+  background-image: none !important;
+  border-radius: 12px !important;
+}
+
+.form-control.is-valid,
+.was-validated .form-control:valid {
+  border-color: #20D68A !important;
+  box-shadow: 0 0 12px rgba(32, 214, 138, 0.25) !important;
+  background-image: none !important;
+  border-radius: 12px !important;
+}
+
+.invalid-feedback {
+  color: #FF7575 !important;
+  font-size: 0.75rem !important;
+  margin-top: 0.25rem !important;
 }

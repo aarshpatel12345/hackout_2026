@@ -14,3 +14,9 @@ export const getProfileApi = async () => {
 	const response = await api.get("/auth/profile");
 	return response.data;
 };
+
+export const forgotPasswordApi = async (data) => {
+	const response = await api.post("/auth/forgot-password", data);
+	return response.data;
+};
+
