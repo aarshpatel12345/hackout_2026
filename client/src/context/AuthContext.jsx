@@ -117,6 +117,11 @@ export const AuthProvider = ({ children }) => {
 		localStorage.removeItem("onboardingData");
 	};
 
+	const updateUser = (userData) => {
+		setUser(userData);
+		localStorage.setItem("user", JSON.stringify(userData));
+	};
+
 	const clearError = () => setError(null);
 
 	return (
@@ -129,6 +134,7 @@ export const AuthProvider = ({ children }) => {
 				register,
 				login,
 				logout,
+				updateUser,
 				clearError,
 				isAuthenticated: !!token,
 			}}

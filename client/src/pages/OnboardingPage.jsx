@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ParticleBackground from "../components/ParticleBackground";
+import CustomDropdown from "../components/CustomDropdown";
 import { useAuth } from "../context/AuthContext";
 import { saveOnboardingApi, getOnboardingApi } from "../api/onboardingApi";
 import { calculateAnalysisApi } from "../api/analysisApi";
@@ -195,6 +196,10 @@ export default function OnboardingPage() {
 			} catch (calcErr) {
 				console.warn("Analysis calculation completed with fallback.");
 			}
+			
+			if (auth?.updateUser && auth?.user) {
+				auth.updateUser({ ...auth.user, isOnboarded: true });
+			}
 			navigate("/dashboard");
 		} catch (err) {
 			const msg = err.response?.data?.message || err.message || "Failed to submit onboarding data.";
@@ -244,7 +249,7 @@ export default function OnboardingPage() {
 			{/* Central Onboarding Card */}
 			<main className="relative z-10 max-w-4xl w-full mx-auto my-6">
 				{/* Step Wizard Nav Header */}
-				<div className="mb-6 overflow-x-auto pb-2 scrollbar-none">
+				<div className="mb-6 overflow-x-auto pb-2 scrollbar-none pt-5">
 					<div className="flex items-center justify-between min-w-[650px] relative px-4">
 						{/* Progress Connecting Line */}
 						<div className="absolute left-8 right-8 top-5 h-[2px] bg-[#16362E] -z-0" />
@@ -341,37 +346,37 @@ export default function OnboardingPage() {
 									<label className="block text-[11px] font-bold uppercase tracking-wider text-[#86A399] mb-1.5">
 										Industry / Sector *
 									</label>
-									<select
+									<CustomDropdown
 										value={formData.business.industry}
-										onChange={(e) => handleBusinessChange("industry", e.target.value)}
-										className="w-full bg-[#04120E] border border-[#16362E] text-[#EAF7F2] rounded-xl px-3.5 py-2.5 text-xs focus:border-[#20D68A] outline-none transition-all"
-									>
-										<option value="Manufacturing">🏭 Manufacturing</option>
-										<option value="Energy & Utilities">⚡ Energy & Utilities</option>
-										<option value="Chemicals & Synthetics">🧪 Chemicals & Synthetics</option>
-										<option value="Textiles & Apparel">🧵 Textiles & Apparel</option>
-										<option value="Food & Agriculture">🌾 Food & Agriculture</option>
-										<option value="Construction & Materials">🧱 Construction & Materials</option>
-										<option value="Technology & Electronics">💻 Technology & Electronics</option>
-										<option value="Logistics & Transport">🚛 Logistics & Transport</option>
-										<option value="Other">🌐 Other Industry</option>
-									</select>
+										onChange={(val) => handleBusinessChange("industry", val)}
+										options={[
+											{ value: "Manufacturing", label: "🏭 Manufacturing" },
+											{ value: "Energy & Utilities", label: "⚡ Energy & Utilities" },
+											{ value: "Chemicals & Synthetics", label: "🧪 Chemicals & Synthetics" },
+											{ value: "Textiles & Apparel", label: "🧵 Textiles & Apparel" },
+											{ value: "Food & Agriculture", label: "🌾 Food & Agriculture" },
+											{ value: "Construction & Materials", label: "🧱 Construction & Materials" },
+											{ value: "Technology & Electronics", label: "💻 Technology & Electronics" },
+											{ value: "Logistics & Transport", label: "🚛 Logistics & Transport" },
+											{ value: "Other", label: "🌐 Other Industry" }
+										]}
+									/>
 								</div>
 
 								<div>
 									<label className="block text-[11px] font-bold uppercase tracking-wider text-[#86A399] mb-1.5">
 										Analysis Period *
 									</label>
-									<select
+									<CustomDropdown
 										value={formData.business.analysisPeriod}
-										onChange={(e) => handleBusinessChange("analysisPeriod", e.target.value)}
-										className="w-full bg-[#04120E] border border-[#16362E] text-[#EAF7F2] rounded-xl px-3.5 py-2.5 text-xs focus:border-[#20D68A] outline-none transition-all"
-									>
-										<option value="Annual (2025-2026)">Annual (2025-2026)</option>
-										<option value="Quarterly (Q1-Q4)">Quarterly</option>
-										<option value="Monthly Baseline">Monthly Baseline</option>
-										<option value="Custom Project Scope">Custom Project Scope</option>
-									</select>
+										onChange={(val) => handleBusinessChange("analysisPeriod", val)}
+										options={[
+											{ value: "Annual (2025-2026)", label: "Annual (2025-2026)" },
+											{ value: "Quarterly (Q1-Q4)", label: "Quarterly (Q1-Q4)" },
+											{ value: "Monthly Baseline", label: "Monthly Baseline" },
+											{ value: "Custom Project Scope", label: "Custom Project Scope" }
+										]}
+									/>
 								</div>
 							</div>
 
@@ -525,14 +530,14 @@ export default function OnboardingPage() {
 												/>
 											</div>
 											<div className="sm:col-span-2">
-												<select
+												<CustomDropdown
 													value={item.materialType}
-													onChange={(e) => handleArrayItemChange("materials", index, "materialType", e.target.value)}
-													className="w-full bg-[#071916] border border-[#16362E] text-[#EAF7F2] rounded-lg px-2 py-1.5 text-xs outline-none focus:border-[#20D68A]"
-												>
-													<option value="Virgin">Virgin</option>
-													<option value="Recycled">Recycled</option>
-												</select>
+													onChange={(val) => handleArrayItemChange("materials", index, "materialType", val)}
+													options={[
+														{ value: "Virgin", label: "Virgin" },
+														{ value: "Recycled", label: "Recycled" }
+													]}
+												/>
 											</div>
 											<div className="sm:col-span-1 flex justify-center">
 												{formData.materials.length > 1 && (
@@ -606,18 +611,18 @@ export default function OnboardingPage() {
 											<label className="block text-[10px] font-bold uppercase text-[#86A399] mb-1">
 												Disposal Method
 											</label>
-											<select
+											<CustomDropdown
 												value={item.disposalMethod}
-												onChange={(e) => handleArrayItemChange("waste", index, "disposalMethod", e.target.value)}
-												className="w-full bg-[#071916] border border-[#16362E] text-[#EAF7F2] rounded-lg px-3 py-2 text-xs outline-none focus:border-[#20D68A]"
-											>
-												<option value="Landfill">Landfill</option>
-												<option value="Recycling">Recycling Center</option>
-												<option value="Incineration">Incineration with Energy Recovery</option>
-												<option value="Composting">Organic Composting</option>
-												<option value="Reuse">Internal Reuse</option>
-												<option value="Hazardous Processing">Hazardous Waste Processing</option>
-											</select>
+												onChange={(val) => handleArrayItemChange("waste", index, "disposalMethod", val)}
+												options={[
+													{ value: "Landfill", label: "Landfill" },
+													{ value: "Recycling", label: "Recycling Center" },
+													{ value: "Incineration", label: "Incineration with Energy Recovery" },
+													{ value: "Composting", label: "Organic Composting" },
+													{ value: "Reuse", label: "Internal Reuse" },
+													{ value: "Hazardous Processing", label: "Hazardous Waste Processing" }
+												]}
+											/>
 										</div>
 
 										<div className="sm:col-span-1 flex justify-center pt-4 sm:pt-0">
@@ -815,16 +820,16 @@ export default function OnboardingPage() {
 										<label className="block text-[10px] font-bold uppercase text-[#86A399] mb-1.5">
 											Preferred Payback Period
 										</label>
-										<select
+										<CustomDropdown
 											value={formData.constraints.preferredPaybackPeriod}
-											onChange={(e) => handleConstraintChange("preferredPaybackPeriod", e.target.value)}
-											className="w-full bg-[#04120E] border border-[#16362E] text-[#EAF7F2] rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-[#20D68A]"
-										>
-											<option value="Under 1 Year">Under 1 Year (Immediate ROI)</option>
-											<option value="1-3 Years">1 - 3 Years</option>
-											<option value="3-5 Years">3 - 5 Years</option>
-											<option value="5+ Years">5+ Years (Long-term Infrastructure)</option>
-										</select>
+											onChange={(val) => handleConstraintChange("preferredPaybackPeriod", val)}
+											options={[
+												{ value: "Under 1 Year", label: "Under 1 Year (Immediate ROI)" },
+												{ value: "1-3 Years", label: "1 - 3 Years" },
+												{ value: "3-5 Years", label: "3 - 5 Years" },
+												{ value: "5+ Years", label: "5+ Years (Long-term Infrastructure)" }
+											]}
+										/>
 									</div>
 								</div>
 							</div>
