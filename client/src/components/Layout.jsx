@@ -42,6 +42,7 @@ export default function Layout({ children, activeMenu, setActiveMenu }) {
 
   const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { name: "Update Baseline", icon: FileText, path: "/onboarding" },
     { name: "AI Insights", icon: Sparkles, badge: "NEW", path: "/ai-insights" },
     { name: "ROI & Cost Calculator", icon: Calculator, path: "/roi-calculator" },
     { name: "Waste Reusability", icon: Recycle, path: "/waste-exchange" },
