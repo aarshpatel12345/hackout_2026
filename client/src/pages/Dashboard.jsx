@@ -69,6 +69,8 @@ const miniLineData2 = [{v: 100}, {v: 120}, {v: 105}, {v: 130}, {v: 140}, {v: 160
 
 const COLORS = ['#059669', '#34d399', '#a7f3d0', '#6ee7b7'];
 
+
+
 export default function Dashboard() {
   return (
     <Layout activeMenu="Dashboard">
@@ -81,7 +83,7 @@ function SkeletonLoader() {
   return (
     <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
       <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mb-4" />
-      <h3 className="text-lg font-bold text-gray-900">Gemini AI is analyzing your data...</h3>
+      <h3 className="text-lg font-bold text-gray-900">AI Engine is analyzing your data...</h3>
       <p className="text-sm text-gray-500">Recalculating emissions and optimizing circular interventions.</p>
     </div>
   );
@@ -165,7 +167,7 @@ function DashboardOverview() {
               DE-CARBONIZATION OS & AUDIT INTELLIGENCE
             </div>
             <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
-              Welcome back, <span className="text-emerald-600">Adam Mays</span>
+              Welcome back <span className="text-emerald-600"></span>
             </h2>
             <p className="text-gray-600 font-medium text-lg mb-2">
               Turn operational data into measurable climate action.
@@ -199,7 +201,7 @@ function DashboardOverview() {
               <h3 className="font-bold text-xs text-gray-500 tracking-wide uppercase">AI Analysis Engine</h3>
             </div>
             <p className="font-bold text-gray-900 text-base leading-tight mb-2">
-              Powered by <span className="text-emerald-600">Google Gemini AI</span><br/>
+              Powered by <span className="text-emerald-600">AI</span><br/>
               <span className="text-xs font-normal text-gray-500">({data?.calculationEngine || 'gemini-3.5-flash'})</span>
             </p>
             <p className="text-xs text-gray-600 leading-relaxed mb-4">
