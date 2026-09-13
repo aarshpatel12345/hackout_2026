@@ -16,6 +16,7 @@ import {
 	Sparkles,
 	AlertCircle,
 	Check,
+	Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CustomDropdown from "../components/CustomDropdown";
@@ -208,8 +209,36 @@ export default function OnboardingPage() {
 		}
 	};
 
+		const validateStep = () => {
+		if (currentStep === 1) {
+			if (!formData.business.industry || !formData.business.analysisPeriod || !formData.business.productionQuantity || !formData.business.productionUnit) return false;
+		} else if (currentStep === 2) {
+			for (let e of formData.energy) {
+				if (!e.energyType || !e.quantity || !e.unit) return false;
+			}
+			for (let m of formData.materials) {
+				if (!m.materialName || !m.quantity || !m.unit || !m.materialType) return false;
+			}
+		} else if (currentStep === 3) {
+			for (let w of formData.waste) {
+				if (!w.wasteType || !w.quantity || !w.unit || !w.disposalMethod) return false;
+			}
+		} else if (currentStep === 4) {
+			for (let p of formData.processes) {
+				if (!p.processName || !p.energyAssociated || !p.materialAssociated || !p.wasteAssociated) return false;
+			}
+		} else if (currentStep === 5) {
+			if (!formData.costs.energyCost || !formData.costs.materialCost || !formData.costs.wasteCost || !formData.constraints.availableBudget || !formData.constraints.preferredPaybackPeriod) return false;
+		}
+		return true;
+	};
+
 	const nextStep = () => {
 		setError(null);
+		if (!validateStep()) {
+			setError("Please fill all the compulsory fields before proceeding.");
+			return;
+		}
 		if (currentStep < STEPS.length) {
 			setCurrentStep((prev) => prev + 1);
 		} else {
@@ -237,7 +266,7 @@ export default function OnboardingPage() {
 						onError={(e) => { e.currentTarget.style.display = 'none'; }}
 					/>
 				</div>
-				<div className="flex items-center space-x-2 bg-white  px-3 py-1.5 rounded-full border border-gray-200 text-xs font-mono text-gray-500">
+				<div className="flex items-center space-x-2 bg-white  px-3.5 py-2.5 rounded-full border border-gray-200 text-xs font-mono text-gray-500">
 					<Sparkles size={14} className="text-emerald-600" />
 					<span>ENVIRONMENTAL ONBOARDING</span>
 				</div>
@@ -395,13 +424,11 @@ export default function OnboardingPage() {
 									<label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
 										Unit
 									</label>
-									<input
-										type="text"
-										placeholder="units/yr, tons, kg"
-										value={formData.business.productionUnit}
-										onChange={(e) => handleBusinessChange("productionUnit", e.target.value)}
-										className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white outline-none transition-all"
-									/>
+									<CustomDropdown
+            value={formData.business.productionUnit}
+            onChange={(val) => handleBusinessChange("productionUnit", val)}
+            options={[{value:"units/yr",label:"units/yr"},{value:"tons",label:"tons"},{value:"kg",label:"kg"}]}
+        />
 								</div>
 							</div>
 						</div>
@@ -434,13 +461,11 @@ export default function OnboardingPage() {
 											className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center bg-gray-50 border border-gray-200 p-3 rounded-xl"
 										>
 											<div className="sm:col-span-5">
-												<input
-													type="text"
-													placeholder="Energy Type (e.g. Solar, Diesel, Natural Gas)"
-													value={item.energyType}
-													onChange={(e) => handleArrayItemChange("energy", index, "energyType", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-												/>
+												<CustomDropdown
+            value={item.energyType}
+            onChange={(val) => handleArrayItemChange("energy", index, "energyType", val)}
+            options={[{value:"Electricity (Grid)",label:"Electricity (Grid)"},{value:"Solar",label:"Solar"},{value:"Diesel",label:"Diesel"},{value:"Natural Gas",label:"Natural Gas"},{value:"Wind",label:"Wind"}]}
+        />
 											</div>
 											<div className="sm:col-span-4">
 												<input
@@ -448,17 +473,15 @@ export default function OnboardingPage() {
 													placeholder="Quantity Consumed"
 													value={item.quantity}
 													onChange={(e) => handleArrayItemChange("energy", index, "quantity", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
+													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 												/>
 											</div>
 											<div className="sm:col-span-2">
-												<input
-													type="text"
-													placeholder="Unit (kWh, Liters)"
-													value={item.unit}
-													onChange={(e) => handleArrayItemChange("energy", index, "unit", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-												/>
+												<CustomDropdown
+            value={item.unit}
+            onChange={(val) => handleArrayItemChange("energy", index, "unit", val)}
+            options={[{value:"kWh/yr",label:"kWh/yr"},{value:"Liters",label:"Liters"},{value:"MMBtu",label:"MMBtu"},{value:"GJ",label:"GJ"},{value:"kg/yr",label:"kg/yr"},{value:"tons/yr",label:"tons/yr"},{value:"pieces/yr",label:"pieces/yr"}]}
+        />
 											</div>
 											<div className="sm:col-span-1 flex justify-center">
 												{formData.energy.length > 1 && (
@@ -500,13 +523,11 @@ export default function OnboardingPage() {
 											className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center bg-gray-50 border border-gray-200 p-3 rounded-xl"
 										>
 											<div className="sm:col-span-4">
-												<input
-													type="text"
-													placeholder="Material Name (e.g. Steel, Polyethylene)"
-													value={item.materialName}
-													onChange={(e) => handleArrayItemChange("materials", index, "materialName", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-												/>
+												<CustomDropdown
+            value={item.materialName}
+            onChange={(val) => handleArrayItemChange("materials", index, "materialName", val)}
+            options={[{value:"Steel",label:"Steel"},{value:"Polyethylene",label:"Polyethylene"},{value:"Aluminum",label:"Aluminum"},{value:"Copper",label:"Copper"},{value:"Wood",label:"Wood"},{value:"Cement",label:"Cement"},{value:"Other",label:"Other"}]}
+        />
 											</div>
 											<div className="sm:col-span-3">
 												<input
@@ -514,17 +535,15 @@ export default function OnboardingPage() {
 													placeholder="Quantity"
 													value={item.quantity}
 													onChange={(e) => handleArrayItemChange("materials", index, "quantity", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
+													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 												/>
 											</div>
 											<div className="sm:col-span-2">
-												<input
-													type="text"
-													placeholder="Unit (kg, tons)"
-													value={item.unit}
-													onChange={(e) => handleArrayItemChange("materials", index, "unit", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-												/>
+												<CustomDropdown
+            value={item.unit}
+            onChange={(val) => handleArrayItemChange("materials", index, "unit", val)}
+            options={[{value:"kWh/yr",label:"kWh/yr"},{value:"Liters",label:"Liters"},{value:"MMBtu",label:"MMBtu"},{value:"GJ",label:"GJ"},{value:"kg/yr",label:"kg/yr"},{value:"tons/yr",label:"tons/yr"},{value:"pieces/yr",label:"pieces/yr"}]}
+        />
 											</div>
 											<div className="sm:col-span-2">
 												<CustomDropdown
@@ -582,13 +601,11 @@ export default function OnboardingPage() {
 											<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">
 												Waste Type
 											</label>
-											<input
-												type="text"
-												placeholder="e.g. E-waste, Scrap Metal, Plastics"
-												value={item.wasteType}
-												onChange={(e) => handleArrayItemChange("waste", index, "wasteType", e.target.value)}
-												className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-											/>
+											<CustomDropdown
+            value={item.wasteType}
+            onChange={(val) => handleArrayItemChange("waste", index, "wasteType", val)}
+            options={[{value:"E-waste",label:"E-waste"},{value:"Scrap Metal",label:"Scrap Metal"},{value:"Plastics",label:"Plastics"},{value:"Organic",label:"Organic"},{value:"General Solid Waste",label:"General Solid Waste"},{value:"Hazardous",label:"Hazardous"}]}
+        />
 										</div>
 
 										<div className="sm:col-span-3">
@@ -600,7 +617,7 @@ export default function OnboardingPage() {
 												placeholder="Amount"
 												value={item.quantity}
 												onChange={(e) => handleArrayItemChange("waste", index, "quantity", e.target.value)}
-												className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
+												className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 											/>
 										</div>
 
@@ -684,26 +701,22 @@ export default function OnboardingPage() {
 												<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">
 													Process Name *
 												</label>
-												<input
-													type="text"
-													placeholder="e.g. Machining, Assembly Line, Boiler"
-													value={item.processName}
-													onChange={(e) => handleArrayItemChange("processes", index, "processName", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-												/>
+												<CustomDropdown
+            value={item.processName}
+            onChange={(val) => handleArrayItemChange("processes", index, "processName", val)}
+            options={[{value:"Machining",label:"Machining"},{value:"Assembly Line",label:"Assembly Line"},{value:"Boiler",label:"Boiler"},{value:"Heating",label:"Heating"},{value:"Cooling",label:"Cooling"},{value:"Chemical Treatment",label:"Chemical Treatment"},{value:"Packaging",label:"Packaging"},{value:"Other",label:"Other"}]}
+        />
 											</div>
 
 											<div>
 												<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">
 													Energy Source Associated
 												</label>
-												<input
-													type="text"
-													placeholder="e.g. High Voltage Grid, Diesel Generator"
-													value={item.energyAssociated}
-													onChange={(e) => handleArrayItemChange("processes", index, "energyAssociated", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-												/>
+												<CustomDropdown
+            value={item.energyAssociated}
+            onChange={(val) => handleArrayItemChange("processes", index, "energyAssociated", val)}
+            options={[{value:"High Voltage Grid",label:"High Voltage Grid"},{value:"Diesel Generator",label:"Diesel Generator"},{value:"Solar Array",label:"Solar Array"},{value:"Natural Gas Burner",label:"Natural Gas Burner"},{value:"None",label:"None"}]}
+        />
 											</div>
 										</div>
 
@@ -712,26 +725,22 @@ export default function OnboardingPage() {
 												<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">
 													Material Input Associated
 												</label>
-												<input
-													type="text"
-													placeholder="e.g. Raw Aluminum Ingot"
-													value={item.materialAssociated}
-													onChange={(e) => handleArrayItemChange("processes", index, "materialAssociated", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-												/>
+												<CustomDropdown
+            value={item.materialAssociated}
+            onChange={(val) => handleArrayItemChange("processes", index, "materialAssociated", val)}
+            options={[{value:"Raw Aluminum Ingot",label:"Raw Aluminum Ingot"},{value:"Steel Sheets",label:"Steel Sheets"},{value:"Plastic Pellets",label:"Plastic Pellets"},{value:"Chemical Solvents",label:"Chemical Solvents"},{value:"None",label:"None"}]}
+        />
 											</div>
 
 											<div>
 												<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">
 													Waste Output Associated
 												</label>
-												<input
-													type="text"
-													placeholder="e.g. Metal Slag & Coolant Fluid"
-													value={item.wasteAssociated}
-													onChange={(e) => handleArrayItemChange("processes", index, "wasteAssociated", e.target.value)}
-													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
-												/>
+												<CustomDropdown
+            value={item.wasteAssociated}
+            onChange={(val) => handleArrayItemChange("processes", index, "wasteAssociated", val)}
+            options={[{value:"Metal Slag & Coolant Fluid",label:"Metal Slag & Coolant Fluid"},{value:"Plastic Scraps",label:"Plastic Scraps"},{value:"Exhaust Gases",label:"Exhaust Gases"},{value:"Wastewater",label:"Wastewater"},{value:"None",label:"None"}]}
+        />
 											</div>
 										</div>
 									</div>
@@ -861,7 +870,7 @@ export default function OnboardingPage() {
 									? "Complete Onboarding & Go to Dashboard"
 									: "Continue to Next Step"}
 							</span>
-							{currentStep === STEPS.length ? (
+							{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : currentStep === STEPS.length ? (
 								<CheckCircle2 size={16} className="stroke-[2.5]" />
 							) : (
 								<ArrowRight size={16} className="stroke-[2.5]" />

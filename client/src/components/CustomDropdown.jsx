@@ -23,7 +23,7 @@ export default function CustomDropdown({ options, value, onChange, placeholder =
             <button
                 type='button'
                 onClick={() => setIsOpen(!isOpen)}
-                className='w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white outline-none transition-all flex justify-between items-center cursor-pointer'
+                className='w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white outline-none transition-all flex justify-between items-center cursor-pointer'
             >
                 <span className='truncate mr-2'>{selectedOption ? selectedOption.label : placeholder}</span>
                 <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-emerald-600' : 'text-gray-400'}`} />
@@ -46,7 +46,7 @@ export default function CustomDropdown({ options, value, onChange, placeholder =
                                     onChange(option.value);
                                     setIsOpen(false);
                                 }}
-                                className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer ${
+                                className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer ${
                                     value === option.value ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600'
                                 }`}
                             >

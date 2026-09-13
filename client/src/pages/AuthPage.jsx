@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Check } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -225,8 +225,9 @@ export default function AuthPage() {
               disabled={isSubmitting}
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3 px-5 text-sm font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-sm transition-colors disabled:opacity-70"
             >
+              {isSubmitting && <Loader2 size={16} className="animate-spin" />}
               <span>{isSubmitting ? "Signing In..." : "Sign In"}</span>
-              <ArrowRight size={16} className="stroke-[2.5]" />
+              {!isSubmitting && <ArrowRight size={16} className="stroke-[2.5]" />}
             </button>
           </div>
         </form>
