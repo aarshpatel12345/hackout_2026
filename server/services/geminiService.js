@@ -298,6 +298,7 @@ Requirements:
 3. Provide 3 prioritized, practical circular economy interventions tailored specifically to their input materials, energy, and waste streams.
 4. Write a concise executive AI summary paragraph ("aiSummaryParagraph") summarizing total impact, primary emission hotspot, key recommended strategy, and potential carbon reduction %.
 5. Generate an array ("wasteReuseMatches") identifying how generated waste streams are reusable. Include strategyName (name of the circular strategy), strategyDescription (description of how it works), wasteUsedAsRawMaterial (which waste will be used as raw material), targetOrganizations (what type of organization needs it), and marketValueRange (the range of market value of that waste).
+6. Express every cost, budget, market value, and financial estimate in Indian rupees (INR), using the ₹ symbol. Do not use USD, $, or any other currency.
 
 Respond ONLY with JSON using this exact structure (no extra keys, no markdown codeblocks):
 {

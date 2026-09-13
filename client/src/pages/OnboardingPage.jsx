@@ -25,11 +25,36 @@ import { saveOnboardingApi, getOnboardingApi } from "../api/onboardingApi";
 import { calculateAnalysisApi } from "../api/analysisApi";
 
 const STEPS = [
-	{ id: 1, title: "Business", icon: Building2, subtitle: "Company & Production baseline" },
-	{ id: 2, title: "Energy & Materials", icon: Zap, subtitle: "Resource consumption details" },
-	{ id: 3, title: "Waste Management", icon: Trash2, subtitle: "Waste types & disposal methods" },
-	{ id: 4, title: "Processes", icon: Cpu, subtitle: "Core manufacturing workflow" },
-	{ id: 5, title: "Costs & Constraints", icon: DollarSign, subtitle: "Financial & payback goals" },
+	{
+		id: 1,
+		title: "Business",
+		icon: Building2,
+		subtitle: "Company & Production baseline",
+	},
+	{
+		id: 2,
+		title: "Energy & Materials",
+		icon: Zap,
+		subtitle: "Resource consumption details",
+	},
+	{
+		id: 3,
+		title: "Waste Management",
+		icon: Trash2,
+		subtitle: "Waste types & disposal methods",
+	},
+	{
+		id: 4,
+		title: "Processes",
+		icon: Cpu,
+		subtitle: "Core manufacturing workflow",
+	},
+	{
+		id: 5,
+		title: "Costs & Constraints",
+		icon: DollarSign,
+		subtitle: "Financial & payback goals",
+	},
 ];
 
 export default function OnboardingPage() {
@@ -58,18 +83,28 @@ export default function OnboardingPage() {
 		],
 		// ♻️ Waste
 		waste: [
-			{ wasteType: "Non-Hazardous Solid Waste", quantity: "", unit: "kg/yr", disposalMethod: "Landfill" },
+			{
+				wasteType: "Non-Hazardous Solid Waste",
+				quantity: "",
+				unit: "kg/yr",
+				disposalMethod: "Landfill",
+			},
 		],
 		// ⚙️ Processes
 		processes: [
-			{ processName: "", energyAssociated: "", materialAssociated: "", wasteAssociated: "" },
+			{
+				processName: "",
+				energyAssociated: "",
+				materialAssociated: "",
+				wasteAssociated: "",
+			},
 		],
 		// 💰 Costs
 		costs: {
 			energyCost: "",
 			materialCost: "",
 			wasteCost: "",
-			currency: "USD ($)",
+			currency: "INR (₹)",
 		},
 		// 🎯 Constraints
 		constraints: {
@@ -92,7 +127,11 @@ export default function OnboardingPage() {
 						materials: data.materials?.length ? data.materials : prev.materials,
 						waste: data.waste?.length ? data.waste : prev.waste,
 						processes: data.processes?.length ? data.processes : prev.processes,
-						costs: { ...prev.costs, ...(data.costs || {}) },
+						costs: {
+							...prev.costs,
+							...(data.costs || {}),
+							currency: "INR (₹)",
+						},
 						constraints: { ...prev.constraints, ...(data.constraints || {}) },
 					}));
 				}
@@ -103,7 +142,9 @@ export default function OnboardingPage() {
 		if (auth?.isAuthenticated) {
 			loadExisting();
 		}
-		return () => { isMounted = false; };
+		return () => {
+			isMounted = false;
+		};
 	}, [auth?.isAuthenticated]);
 
 	// Input Handlers
@@ -196,39 +237,63 @@ export default function OnboardingPage() {
 			} catch (calcErr) {
 				console.warn("Analysis calculation completed with fallback.");
 			}
-			
+
 			if (auth?.updateUser && auth?.user) {
 				auth.updateUser({ ...auth.user, isOnboarded: true });
 			}
 			navigate("/dashboard");
 		} catch (err) {
-			const msg = err.response?.data?.message || err.message || "Failed to submit onboarding data.";
+			const msg =
+				err.response?.data?.message ||
+				err.message ||
+				"Failed to submit onboarding data.";
 			setError(msg);
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-		const validateStep = () => {
+	const validateStep = () => {
 		if (currentStep === 1) {
-			if (!formData.business.industry || !formData.business.analysisPeriod || !formData.business.productionQuantity || !formData.business.productionUnit) return false;
+			if (
+				!formData.business.industry ||
+				!formData.business.analysisPeriod ||
+				!formData.business.productionQuantity ||
+				!formData.business.productionUnit
+			)
+				return false;
 		} else if (currentStep === 2) {
 			for (let e of formData.energy) {
 				if (!e.energyType || !e.quantity || !e.unit) return false;
 			}
 			for (let m of formData.materials) {
-				if (!m.materialName || !m.quantity || !m.unit || !m.materialType) return false;
+				if (!m.materialName || !m.quantity || !m.unit || !m.materialType)
+					return false;
 			}
 		} else if (currentStep === 3) {
 			for (let w of formData.waste) {
-				if (!w.wasteType || !w.quantity || !w.unit || !w.disposalMethod) return false;
+				if (!w.wasteType || !w.quantity || !w.unit || !w.disposalMethod)
+					return false;
 			}
 		} else if (currentStep === 4) {
 			for (let p of formData.processes) {
-				if (!p.processName || !p.energyAssociated || !p.materialAssociated || !p.wasteAssociated) return false;
+				if (
+					!p.processName ||
+					!p.energyAssociated ||
+					!p.materialAssociated ||
+					!p.wasteAssociated
+				)
+					return false;
 			}
 		} else if (currentStep === 5) {
-			if (!formData.costs.energyCost || !formData.costs.materialCost || !formData.costs.wasteCost || !formData.constraints.availableBudget || !formData.constraints.preferredPaybackPeriod) return false;
+			if (
+				!formData.costs.energyCost ||
+				!formData.costs.materialCost ||
+				!formData.costs.wasteCost ||
+				!formData.constraints.availableBudget ||
+				!formData.constraints.preferredPaybackPeriod
+			)
+				return false;
 		}
 		return true;
 	};
@@ -255,7 +320,6 @@ export default function OnboardingPage() {
 
 	return (
 		<div className="relative min-h-screen w-full bg-gray-50 text-gray-900 flex flex-col justify-between p-4 sm:p-6 md:p-10 font-sans select-none overflow-x-hidden">
-						
 			{/* Top Header */}
 			<header className="relative z-10 max-w-5xl w-full mx-auto flex items-center justify-between py-2">
 				<div className="flex items-center space-x-3">
@@ -263,7 +327,9 @@ export default function OnboardingPage() {
 						src="/logo.jpg"
 						alt="CarbonTrace Logo"
 						className="h-10 sm:h-12 w-auto object-contain rounded-lg shadow-sm border border-gray-200"
-						onError={(e) => { e.currentTarget.style.display = 'none'; }}
+						onError={(e) => {
+							e.currentTarget.style.display = "none";
+						}}
 					/>
 				</div>
 				<div className="flex items-center space-x-2 bg-white  px-3.5 py-2.5 rounded-full border border-gray-200 text-xs font-mono text-gray-500">
@@ -294,9 +360,13 @@ export default function OnboardingPage() {
 							return (
 								<div
 									key={step.id}
-									onClick={() => currentStep > step.id && setCurrentStep(step.id)}
+									onClick={() =>
+										currentStep > step.id && setCurrentStep(step.id)
+									}
 									className={`flex flex-col items-center space-y-2 cursor-pointer z-10 ${
-										isActive || isCompleted ? "opacity-100" : "opacity-40 hover:opacity-70"
+										isActive || isCompleted
+											? "opacity-100"
+											: "opacity-40 hover:opacity-70"
 									} transition-opacity duration-200`}
 								>
 									<div
@@ -304,11 +374,15 @@ export default function OnboardingPage() {
 											isActive
 												? "bg-emerald-600 text-white shadow-lg scale-110 font-bold"
 												: isCompleted
-												? "bg-gray-200 text-emerald-600 border border-emerald-200"
-												: "bg-gray-50 text-gray-500 border border-gray-200"
+													? "bg-gray-200 text-emerald-600 border border-emerald-200"
+													: "bg-gray-50 text-gray-500 border border-gray-200"
 										}`}
 									>
-										{isCompleted ? <Check size={18} className="stroke-[3]" /> : <IconComponent size={18} />}
+										{isCompleted ? (
+											<Check size={18} className="stroke-[3]" />
+										) : (
+											<IconComponent size={18} />
+										)}
 									</div>
 									<div className="text-center">
 										<p
@@ -377,14 +451,35 @@ export default function OnboardingPage() {
 										onChange={(val) => handleBusinessChange("industry", val)}
 										options={[
 											{ value: "Manufacturing", label: "🏭 Manufacturing" },
-											{ value: "Energy & Utilities", label: "⚡ Energy & Utilities" },
-											{ value: "Chemicals & Synthetics", label: "🧪 Chemicals & Synthetics" },
-											{ value: "Textiles & Apparel", label: "🧵 Textiles & Apparel" },
-											{ value: "Food & Agriculture", label: "🌾 Food & Agriculture" },
-											{ value: "Construction & Materials", label: "🧱 Construction & Materials" },
-											{ value: "Technology & Electronics", label: "💻 Technology & Electronics" },
-											{ value: "Logistics & Transport", label: "🚛 Logistics & Transport" },
-											{ value: "Other", label: "🌐 Other Industry" }
+											{
+												value: "Energy & Utilities",
+												label: "⚡ Energy & Utilities",
+											},
+											{
+												value: "Chemicals & Synthetics",
+												label: "🧪 Chemicals & Synthetics",
+											},
+											{
+												value: "Textiles & Apparel",
+												label: "🧵 Textiles & Apparel",
+											},
+											{
+												value: "Food & Agriculture",
+												label: "🌾 Food & Agriculture",
+											},
+											{
+												value: "Construction & Materials",
+												label: "🧱 Construction & Materials",
+											},
+											{
+												value: "Technology & Electronics",
+												label: "💻 Technology & Electronics",
+											},
+											{
+												value: "Logistics & Transport",
+												label: "🚛 Logistics & Transport",
+											},
+											{ value: "Other", label: "🌐 Other Industry" },
 										]}
 									/>
 								</div>
@@ -395,12 +490,23 @@ export default function OnboardingPage() {
 									</label>
 									<CustomDropdown
 										value={formData.business.analysisPeriod}
-										onChange={(val) => handleBusinessChange("analysisPeriod", val)}
+										onChange={(val) =>
+											handleBusinessChange("analysisPeriod", val)
+										}
 										options={[
-											{ value: "Annual (2025-2026)", label: "Annual (2025-2026)" },
-											{ value: "Quarterly (Q1-Q4)", label: "Quarterly (Q1-Q4)" },
+											{
+												value: "Annual (2025-2026)",
+												label: "Annual (2025-2026)",
+											},
+											{
+												value: "Quarterly (Q1-Q4)",
+												label: "Quarterly (Q1-Q4)",
+											},
 											{ value: "Monthly Baseline", label: "Monthly Baseline" },
-											{ value: "Custom Project Scope", label: "Custom Project Scope" }
+											{
+												value: "Custom Project Scope",
+												label: "Custom Project Scope",
+											},
 										]}
 									/>
 								</div>
@@ -415,7 +521,9 @@ export default function OnboardingPage() {
 										type="number"
 										placeholder="e.g. 50000"
 										value={formData.business.productionQuantity}
-										onChange={(e) => handleBusinessChange("productionQuantity", e.target.value)}
+										onChange={(e) =>
+											handleBusinessChange("productionQuantity", e.target.value)
+										}
 										className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white outline-none transition-all"
 									/>
 								</div>
@@ -425,10 +533,16 @@ export default function OnboardingPage() {
 										Unit
 									</label>
 									<CustomDropdown
-            value={formData.business.productionUnit}
-            onChange={(val) => handleBusinessChange("productionUnit", val)}
-            options={[{value:"units/yr",label:"units/yr"},{value:"tons",label:"tons"},{value:"kg",label:"kg"}]}
-        />
+										value={formData.business.productionUnit}
+										onChange={(val) =>
+											handleBusinessChange("productionUnit", val)
+										}
+										options={[
+											{ value: "units/yr", label: "units/yr" },
+											{ value: "tons", label: "tons" },
+											{ value: "kg", label: "kg" },
+										]}
+									/>
 								</div>
 							</div>
 						</div>
@@ -446,7 +560,13 @@ export default function OnboardingPage() {
 									</h3>
 									<button
 										type="button"
-										onClick={() => addArrayItem("energy", { energyType: "Electricity (Grid)", quantity: "", unit: "kWh/yr" })}
+										onClick={() =>
+											addArrayItem("energy", {
+												energyType: "Electricity (Grid)",
+												quantity: "",
+												unit: "kWh/yr",
+											})
+										}
 										className="text-xs text-emerald-600 hover:text-emerald-500 flex items-center space-x-1 font-semibold transition-colors"
 									>
 										<Plus size={14} />
@@ -462,26 +582,59 @@ export default function OnboardingPage() {
 										>
 											<div className="sm:col-span-5">
 												<CustomDropdown
-            value={item.energyType}
-            onChange={(val) => handleArrayItemChange("energy", index, "energyType", val)}
-            options={[{value:"Electricity (Grid)",label:"Electricity (Grid)"},{value:"Solar",label:"Solar"},{value:"Diesel",label:"Diesel"},{value:"Natural Gas",label:"Natural Gas"},{value:"Wind",label:"Wind"}]}
-        />
+													value={item.energyType}
+													onChange={(val) =>
+														handleArrayItemChange(
+															"energy",
+															index,
+															"energyType",
+															val,
+														)
+													}
+													options={[
+														{
+															value: "Electricity (Grid)",
+															label: "Electricity (Grid)",
+														},
+														{ value: "Solar", label: "Solar" },
+														{ value: "Diesel", label: "Diesel" },
+														{ value: "Natural Gas", label: "Natural Gas" },
+														{ value: "Wind", label: "Wind" },
+													]}
+												/>
 											</div>
 											<div className="sm:col-span-4">
 												<input
 													type="number"
 													placeholder="Quantity Consumed"
 													value={item.quantity}
-													onChange={(e) => handleArrayItemChange("energy", index, "quantity", e.target.value)}
+													onChange={(e) =>
+														handleArrayItemChange(
+															"energy",
+															index,
+															"quantity",
+															e.target.value,
+														)
+													}
 													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 												/>
 											</div>
 											<div className="sm:col-span-2">
 												<CustomDropdown
-            value={item.unit}
-            onChange={(val) => handleArrayItemChange("energy", index, "unit", val)}
-            options={[{value:"kWh/yr",label:"kWh/yr"},{value:"Liters",label:"Liters"},{value:"MMBtu",label:"MMBtu"},{value:"GJ",label:"GJ"},{value:"kg/yr",label:"kg/yr"},{value:"tons/yr",label:"tons/yr"},{value:"pieces/yr",label:"pieces/yr"}]}
-        />
+													value={item.unit}
+													onChange={(val) =>
+														handleArrayItemChange("energy", index, "unit", val)
+													}
+													options={[
+														{ value: "kWh/yr", label: "kWh/yr" },
+														{ value: "Liters", label: "Liters" },
+														{ value: "MMBtu", label: "MMBtu" },
+														{ value: "GJ", label: "GJ" },
+														{ value: "kg/yr", label: "kg/yr" },
+														{ value: "tons/yr", label: "tons/yr" },
+														{ value: "pieces/yr", label: "pieces/yr" },
+													]}
+												/>
 											</div>
 											<div className="sm:col-span-1 flex justify-center">
 												{formData.energy.length > 1 && (
@@ -508,7 +661,14 @@ export default function OnboardingPage() {
 									</h3>
 									<button
 										type="button"
-										onClick={() => addArrayItem("materials", { materialName: "", quantity: "", unit: "kg/yr", materialType: "Virgin" })}
+										onClick={() =>
+											addArrayItem("materials", {
+												materialName: "",
+												quantity: "",
+												unit: "kg/yr",
+												materialType: "Virgin",
+											})
+										}
 										className="text-xs text-emerald-600 hover:text-emerald-500 flex items-center space-x-1 font-semibold transition-colors"
 									>
 										<Plus size={14} />
@@ -524,34 +684,78 @@ export default function OnboardingPage() {
 										>
 											<div className="sm:col-span-4">
 												<CustomDropdown
-            value={item.materialName}
-            onChange={(val) => handleArrayItemChange("materials", index, "materialName", val)}
-            options={[{value:"Steel",label:"Steel"},{value:"Polyethylene",label:"Polyethylene"},{value:"Aluminum",label:"Aluminum"},{value:"Copper",label:"Copper"},{value:"Wood",label:"Wood"},{value:"Cement",label:"Cement"},{value:"Other",label:"Other"}]}
-        />
+													value={item.materialName}
+													onChange={(val) =>
+														handleArrayItemChange(
+															"materials",
+															index,
+															"materialName",
+															val,
+														)
+													}
+													options={[
+														{ value: "Steel", label: "Steel" },
+														{ value: "Polyethylene", label: "Polyethylene" },
+														{ value: "Aluminum", label: "Aluminum" },
+														{ value: "Copper", label: "Copper" },
+														{ value: "Wood", label: "Wood" },
+														{ value: "Cement", label: "Cement" },
+														{ value: "Other", label: "Other" },
+													]}
+												/>
 											</div>
 											<div className="sm:col-span-3">
 												<input
 													type="number"
 													placeholder="Quantity"
 													value={item.quantity}
-													onChange={(e) => handleArrayItemChange("materials", index, "quantity", e.target.value)}
+													onChange={(e) =>
+														handleArrayItemChange(
+															"materials",
+															index,
+															"quantity",
+															e.target.value,
+														)
+													}
 													className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 												/>
 											</div>
 											<div className="sm:col-span-2">
 												<CustomDropdown
-            value={item.unit}
-            onChange={(val) => handleArrayItemChange("materials", index, "unit", val)}
-            options={[{value:"kWh/yr",label:"kWh/yr"},{value:"Liters",label:"Liters"},{value:"MMBtu",label:"MMBtu"},{value:"GJ",label:"GJ"},{value:"kg/yr",label:"kg/yr"},{value:"tons/yr",label:"tons/yr"},{value:"pieces/yr",label:"pieces/yr"}]}
-        />
+													value={item.unit}
+													onChange={(val) =>
+														handleArrayItemChange(
+															"materials",
+															index,
+															"unit",
+															val,
+														)
+													}
+													options={[
+														{ value: "kWh/yr", label: "kWh/yr" },
+														{ value: "Liters", label: "Liters" },
+														{ value: "MMBtu", label: "MMBtu" },
+														{ value: "GJ", label: "GJ" },
+														{ value: "kg/yr", label: "kg/yr" },
+														{ value: "tons/yr", label: "tons/yr" },
+														{ value: "pieces/yr", label: "pieces/yr" },
+													]}
+												/>
 											</div>
 											<div className="sm:col-span-2">
 												<CustomDropdown
 													value={item.materialType}
-													onChange={(val) => handleArrayItemChange("materials", index, "materialType", val)}
+													onChange={(val) =>
+														handleArrayItemChange(
+															"materials",
+															index,
+															"materialType",
+															val,
+														)
+													}
 													options={[
 														{ value: "Virgin", label: "Virgin" },
-														{ value: "Recycled", label: "Recycled" }
+														{ value: "Recycled", label: "Recycled" },
 													]}
 												/>
 											</div>
@@ -583,7 +787,14 @@ export default function OnboardingPage() {
 								</h3>
 								<button
 									type="button"
-									onClick={() => addArrayItem("waste", { wasteType: "", quantity: "", unit: "kg/yr", disposalMethod: "Landfill" })}
+									onClick={() =>
+										addArrayItem("waste", {
+											wasteType: "",
+											quantity: "",
+											unit: "kg/yr",
+											disposalMethod: "Landfill",
+										})
+									}
 									className="text-xs text-emerald-600 hover:text-emerald-500 flex items-center space-x-1 font-semibold transition-colors"
 								>
 									<Plus size={14} />
@@ -602,10 +813,27 @@ export default function OnboardingPage() {
 												Waste Type
 											</label>
 											<CustomDropdown
-            value={item.wasteType}
-            onChange={(val) => handleArrayItemChange("waste", index, "wasteType", val)}
-            options={[{value:"E-waste",label:"E-waste"},{value:"Scrap Metal",label:"Scrap Metal"},{value:"Plastics",label:"Plastics"},{value:"Organic",label:"Organic"},{value:"General Solid Waste",label:"General Solid Waste"},{value:"Hazardous",label:"Hazardous"}]}
-        />
+												value={item.wasteType}
+												onChange={(val) =>
+													handleArrayItemChange(
+														"waste",
+														index,
+														"wasteType",
+														val,
+													)
+												}
+												options={[
+													{ value: "E-waste", label: "E-waste" },
+													{ value: "Scrap Metal", label: "Scrap Metal" },
+													{ value: "Plastics", label: "Plastics" },
+													{ value: "Organic", label: "Organic" },
+													{
+														value: "General Solid Waste",
+														label: "General Solid Waste",
+													},
+													{ value: "Hazardous", label: "Hazardous" },
+												]}
+											/>
 										</div>
 
 										<div className="sm:col-span-3">
@@ -616,7 +844,14 @@ export default function OnboardingPage() {
 												type="number"
 												placeholder="Amount"
 												value={item.quantity}
-												onChange={(e) => handleArrayItemChange("waste", index, "quantity", e.target.value)}
+												onChange={(e) =>
+													handleArrayItemChange(
+														"waste",
+														index,
+														"quantity",
+														e.target.value,
+													)
+												}
 												className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 											/>
 										</div>
@@ -627,14 +862,27 @@ export default function OnboardingPage() {
 											</label>
 											<CustomDropdown
 												value={item.disposalMethod}
-												onChange={(val) => handleArrayItemChange("waste", index, "disposalMethod", val)}
+												onChange={(val) =>
+													handleArrayItemChange(
+														"waste",
+														index,
+														"disposalMethod",
+														val,
+													)
+												}
 												options={[
 													{ value: "Landfill", label: "Landfill" },
 													{ value: "Recycling", label: "Recycling Center" },
-													{ value: "Incineration", label: "Incineration with Energy Recovery" },
+													{
+														value: "Incineration",
+														label: "Incineration with Energy Recovery",
+													},
 													{ value: "Composting", label: "Organic Composting" },
 													{ value: "Reuse", label: "Internal Reuse" },
-													{ value: "Hazardous Processing", label: "Hazardous Waste Processing" }
+													{
+														value: "Hazardous Processing",
+														label: "Hazardous Waste Processing",
+													},
 												]}
 											/>
 										</div>
@@ -666,7 +914,14 @@ export default function OnboardingPage() {
 								</h3>
 								<button
 									type="button"
-									onClick={() => addArrayItem("processes", { processName: "", energyAssociated: "", materialAssociated: "", wasteAssociated: "" })}
+									onClick={() =>
+										addArrayItem("processes", {
+											processName: "",
+											energyAssociated: "",
+											materialAssociated: "",
+											wasteAssociated: "",
+										})
+									}
 									className="text-xs text-emerald-600 hover:text-emerald-500 flex items-center space-x-1 font-semibold transition-colors"
 								>
 									<Plus size={14} />
@@ -702,10 +957,29 @@ export default function OnboardingPage() {
 													Process Name *
 												</label>
 												<CustomDropdown
-            value={item.processName}
-            onChange={(val) => handleArrayItemChange("processes", index, "processName", val)}
-            options={[{value:"Machining",label:"Machining"},{value:"Assembly Line",label:"Assembly Line"},{value:"Boiler",label:"Boiler"},{value:"Heating",label:"Heating"},{value:"Cooling",label:"Cooling"},{value:"Chemical Treatment",label:"Chemical Treatment"},{value:"Packaging",label:"Packaging"},{value:"Other",label:"Other"}]}
-        />
+													value={item.processName}
+													onChange={(val) =>
+														handleArrayItemChange(
+															"processes",
+															index,
+															"processName",
+															val,
+														)
+													}
+													options={[
+														{ value: "Machining", label: "Machining" },
+														{ value: "Assembly Line", label: "Assembly Line" },
+														{ value: "Boiler", label: "Boiler" },
+														{ value: "Heating", label: "Heating" },
+														{ value: "Cooling", label: "Cooling" },
+														{
+															value: "Chemical Treatment",
+															label: "Chemical Treatment",
+														},
+														{ value: "Packaging", label: "Packaging" },
+														{ value: "Other", label: "Other" },
+													]}
+												/>
 											</div>
 
 											<div>
@@ -713,10 +987,32 @@ export default function OnboardingPage() {
 													Energy Source Associated
 												</label>
 												<CustomDropdown
-            value={item.energyAssociated}
-            onChange={(val) => handleArrayItemChange("processes", index, "energyAssociated", val)}
-            options={[{value:"High Voltage Grid",label:"High Voltage Grid"},{value:"Diesel Generator",label:"Diesel Generator"},{value:"Solar Array",label:"Solar Array"},{value:"Natural Gas Burner",label:"Natural Gas Burner"},{value:"None",label:"None"}]}
-        />
+													value={item.energyAssociated}
+													onChange={(val) =>
+														handleArrayItemChange(
+															"processes",
+															index,
+															"energyAssociated",
+															val,
+														)
+													}
+													options={[
+														{
+															value: "High Voltage Grid",
+															label: "High Voltage Grid",
+														},
+														{
+															value: "Diesel Generator",
+															label: "Diesel Generator",
+														},
+														{ value: "Solar Array", label: "Solar Array" },
+														{
+															value: "Natural Gas Burner",
+															label: "Natural Gas Burner",
+														},
+														{ value: "None", label: "None" },
+													]}
+												/>
 											</div>
 										</div>
 
@@ -726,10 +1022,32 @@ export default function OnboardingPage() {
 													Material Input Associated
 												</label>
 												<CustomDropdown
-            value={item.materialAssociated}
-            onChange={(val) => handleArrayItemChange("processes", index, "materialAssociated", val)}
-            options={[{value:"Raw Aluminum Ingot",label:"Raw Aluminum Ingot"},{value:"Steel Sheets",label:"Steel Sheets"},{value:"Plastic Pellets",label:"Plastic Pellets"},{value:"Chemical Solvents",label:"Chemical Solvents"},{value:"None",label:"None"}]}
-        />
+													value={item.materialAssociated}
+													onChange={(val) =>
+														handleArrayItemChange(
+															"processes",
+															index,
+															"materialAssociated",
+															val,
+														)
+													}
+													options={[
+														{
+															value: "Raw Aluminum Ingot",
+															label: "Raw Aluminum Ingot",
+														},
+														{ value: "Steel Sheets", label: "Steel Sheets" },
+														{
+															value: "Plastic Pellets",
+															label: "Plastic Pellets",
+														},
+														{
+															value: "Chemical Solvents",
+															label: "Chemical Solvents",
+														},
+														{ value: "None", label: "None" },
+													]}
+												/>
 											</div>
 
 											<div>
@@ -737,10 +1055,29 @@ export default function OnboardingPage() {
 													Waste Output Associated
 												</label>
 												<CustomDropdown
-            value={item.wasteAssociated}
-            onChange={(val) => handleArrayItemChange("processes", index, "wasteAssociated", val)}
-            options={[{value:"Metal Slag & Coolant Fluid",label:"Metal Slag & Coolant Fluid"},{value:"Plastic Scraps",label:"Plastic Scraps"},{value:"Exhaust Gases",label:"Exhaust Gases"},{value:"Wastewater",label:"Wastewater"},{value:"None",label:"None"}]}
-        />
+													value={item.wasteAssociated}
+													onChange={(val) =>
+														handleArrayItemChange(
+															"processes",
+															index,
+															"wasteAssociated",
+															val,
+														)
+													}
+													options={[
+														{
+															value: "Metal Slag & Coolant Fluid",
+															label: "Metal Slag & Coolant Fluid",
+														},
+														{
+															value: "Plastic Scraps",
+															label: "Plastic Scraps",
+														},
+														{ value: "Exhaust Gases", label: "Exhaust Gases" },
+														{ value: "Wastewater", label: "Wastewater" },
+														{ value: "None", label: "None" },
+													]}
+												/>
 											</div>
 										</div>
 									</div>
@@ -762,39 +1099,45 @@ export default function OnboardingPage() {
 								<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 									<div>
 										<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5">
-											Energy Cost ($/yr)
+											Energy Cost (₹/yr)
 										</label>
 										<input
 											type="number"
 											placeholder="e.g. 12000"
 											value={formData.costs.energyCost}
-											onChange={(e) => handleCostChange("energyCost", e.target.value)}
+											onChange={(e) =>
+												handleCostChange("energyCost", e.target.value)
+											}
 											className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 										/>
 									</div>
 
 									<div>
 										<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5">
-											Material Cost ($/yr)
+											Material Cost (₹/yr)
 										</label>
 										<input
 											type="number"
 											placeholder="e.g. 45000"
 											value={formData.costs.materialCost}
-											onChange={(e) => handleCostChange("materialCost", e.target.value)}
+											onChange={(e) =>
+												handleCostChange("materialCost", e.target.value)
+											}
 											className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 										/>
 									</div>
 
 									<div>
 										<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5">
-											Waste Disposal Cost ($/yr)
+											Waste Disposal Cost (₹/yr)
 										</label>
 										<input
 											type="number"
 											placeholder="e.g. 8000"
 											value={formData.costs.wasteCost}
-											onChange={(e) => handleCostChange("wasteCost", e.target.value)}
+											onChange={(e) =>
+												handleCostChange("wasteCost", e.target.value)
+											}
 											className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 										/>
 									</div>
@@ -811,13 +1154,18 @@ export default function OnboardingPage() {
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 									<div>
 										<label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5">
-											Available Budget for De-carbonization ($)
+											Available Budget for De-carbonization (₹)
 										</label>
 										<input
 											type="number"
 											placeholder="e.g. 50000"
 											value={formData.constraints.availableBudget}
-											onChange={(e) => handleConstraintChange("availableBudget", e.target.value)}
+											onChange={(e) =>
+												handleConstraintChange(
+													"availableBudget",
+													e.target.value,
+												)
+											}
 											className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white"
 										/>
 									</div>
@@ -828,12 +1176,20 @@ export default function OnboardingPage() {
 										</label>
 										<CustomDropdown
 											value={formData.constraints.preferredPaybackPeriod}
-											onChange={(val) => handleConstraintChange("preferredPaybackPeriod", val)}
+											onChange={(val) =>
+												handleConstraintChange("preferredPaybackPeriod", val)
+											}
 											options={[
-												{ value: "Under 1 Year", label: "Under 1 Year (Immediate ROI)" },
+												{
+													value: "Under 1 Year",
+													label: "Under 1 Year (Immediate ROI)",
+												},
 												{ value: "1-3 Years", label: "1 - 3 Years" },
 												{ value: "3-5 Years", label: "3 - 5 Years" },
-												{ value: "5+ Years", label: "5+ Years (Long-term Infrastructure)" }
+												{
+													value: "5+ Years",
+													label: "5+ Years (Long-term Infrastructure)",
+												},
 											]}
 										/>
 									</div>
@@ -867,10 +1223,12 @@ export default function OnboardingPage() {
 								{isSubmitting
 									? "Saving Baseline..."
 									: currentStep === STEPS.length
-									? "Complete Onboarding & Go to Dashboard"
-									: "Continue to Next Step"}
+										? "Complete Onboarding & Go to Dashboard"
+										: "Continue to Next Step"}
 							</span>
-							{isSubmitting ? <Loader2 size={16} className="animate-spin" /> : currentStep === STEPS.length ? (
+							{isSubmitting ? (
+								<Loader2 size={16} className="animate-spin" />
+							) : currentStep === STEPS.length ? (
 								<CheckCircle2 size={16} className="stroke-[2.5]" />
 							) : (
 								<ArrowRight size={16} className="stroke-[2.5]" />
