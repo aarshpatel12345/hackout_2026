@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sparkles,
   Calculator,
@@ -27,7 +27,8 @@ import {
   ChevronRight,
   Leaf,
   Recycle,
-  LayoutDashboard
+  LayoutDashboard,
+  Loader2
 } from "lucide-react";
 import {
   BarChart,
@@ -44,7 +45,10 @@ import {
   Line
 } from "recharts";
 import Layout from "../components/Layout";
+import { useNavigate } from "react-router-dom";
+import { getAnalysisApi, calculateAnalysisApi } from "../api/analysisApi";
 
+// Hardcoded charts fallback/mock data
 const barData = [
   { name: 'Jan', scope1: 45, scope2: 25, scope3: 20 },
   { name: 'Feb', scope1: 50, scope2: 28, scope3: 22 },
@@ -60,53 +64,99 @@ const barData = [
   { name: 'Dec', scope1: 39, scope2: 20, scope3: 17 },
 ];
 
-const pieData = [
-  { name: 'Energy', value: 45.0, color: '#059669' }, 
-  { name: 'Virgin Material', value: 28.0, color: '#34d399' }, 
-  { name: 'Landfilled Waste', value: 0.1, color: '#a7f3d0' }, 
-];
-
 const miniLineData1 = [{v: 40}, {v: 30}, {v: 45}, {v: 25}, {v: 35}, {v: 20}];
 const miniLineData2 = [{v: 100}, {v: 120}, {v: 105}, {v: 130}, {v: 140}, {v: 160}];
 
-// A simple placeholder component for tabs not yet fully built out
-const PlaceholderView = ({ title, icon: Icon }) => (
-  <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">
-    <Icon size={64} className="mb-4 text-gray-200" />
-    <h2 className="text-xl font-bold text-gray-600 mb-2">{title}</h2>
-    <p className="text-sm">This module is part of the CarbonTrace enterprise suite.</p>
-  </div>
-);
-
-import { useNavigate } from "react-router-dom";
-
-// ... (imports remain)
+const COLORS = ['#059669', '#34d399', '#a7f3d0', '#6ee7b7'];
 
 export default function Dashboard() {
   return (
-    <Layout>
+    <Layout activeMenu="Dashboard">
       <DashboardOverview />
     </Layout>
   );
 }
 
+function SkeletonLoader() {
+  return (
+    <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
+      <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mb-4" />
+      <h3 className="text-lg font-bold text-gray-900">Gemini AI is analyzing your data...</h3>
+      <p className="text-sm text-gray-500">Recalculating emissions and optimizing circular interventions.</p>
+    </div>
+  );
+}
+
 function DashboardOverview() {
   const navigate = useNavigate();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refetching, setRefetching] = useState(false);
 
-  const handleQuickAction = (actionName) => {
-    if (actionName === "Run AI Analysis") {
-      navigate("/ai-insights");
-    } else if (actionName === "Calculate ROI") {
-      navigate("/roi-calculator");
-    } else {
-      alert(`Action Triggered: ${actionName}`);
+  const loadData = async () => {
+    try {
+      const response = await getAnalysisApi();
+      setData(response.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleQuickAction = async (actionName) => {
+    if (actionName === "Run AI Analysis") {
+      setRefetching(true);
+      try {
+        let onboardingData = null;
+        try {
+          const saved = localStorage.getItem("onboardingData");
+          if (saved) onboardingData = JSON.parse(saved);
+        } catch (e) {}
+        const response = await calculateAnalysisApi(onboardingData);
+        setData(response.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setRefetching(false);
+      }
+    } else if (actionName === "Calculate ROI") {
+      navigate("/roi-calculator");
+    } else {
+      navigate(`/${actionName.toLowerCase().replace(/ /g, '-')}`);
+    }
+  };
+
+  const totalEmissions = data?.totalCarbonFootprint || 73.1;
+  const topSources = data?.topEmissionSources || [];
+  const pieData = topSources.length > 0 
+    ? topSources.map((s, i) => ({ name: s.source, value: s.percentage, color: COLORS[i % COLORS.length] }))
+    : [
+        { name: 'Energy', value: 45.0, color: '#059669' }, 
+        { name: 'Virgin Material', value: 28.0, color: '#34d399' }, 
+        { name: 'Landfilled Waste', value: 27.0, color: '#a7f3d0' }, 
+      ];
+
+  const recommendations = data?.recommendations || [];
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-12 h-12 text-emerald-600 animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <>
+    <div className="relative">
+      {refetching && <SkeletonLoader />}
+      
       {/* Top Hero Row */}
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row gap-4 mb-4">
         {/* Hero Banner */}
         <div className="flex-1 bg-white rounded-2xl border border-gray-200 overflow-hidden relative shadow-sm flex min-h-[220px]">
           <div className="w-full lg:w-[60%] p-6 flex flex-col justify-center relative z-10 bg-gradient-to-r from-white via-white to-transparent">
@@ -150,7 +200,7 @@ function DashboardOverview() {
             </div>
             <p className="font-bold text-gray-900 text-base leading-tight mb-2">
               Powered by <span className="text-emerald-600">Google Gemini AI</span><br/>
-              <span className="text-xs font-normal text-gray-500">(gemini-3.5-flash)</span>
+              <span className="text-xs font-normal text-gray-500">({data?.calculationEngine || 'gemini-3.5-flash'})</span>
             </p>
             <p className="text-xs text-gray-600 leading-relaxed mb-4">
               Get instant insights, recommendations and audit-ready narratives.
@@ -158,16 +208,17 @@ function DashboardOverview() {
           </div>
           <button 
             onClick={() => handleQuickAction("Run AI Analysis")}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+            disabled={refetching}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           >
-            Re-run AI Analysis
-            <ArrowRight size={16} />
+            {refetching ? 'Analyzing...' : 'Re-run AI Analysis'}
+            {!refetching && <ArrowRight size={16} />}
           </button>
         </div>
       </div>
 
       {/* Metrics Row (4 Cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {/* Total Carbon Footprint */}
         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-start justify-between mb-2">
@@ -175,7 +226,7 @@ function DashboardOverview() {
               <div className="p-2 bg-emerald-50 rounded-full text-emerald-600">
                 <TreePine size={20} />
               </div>
-              <h3 className="text-sm font-bold text-gray-800">Total Carbon Footprint</h3>
+              <h3 className="text-sm font-bold text-gray-800">Total Footprint</h3>
             </div>
             <div className="flex flex-col items-end">
               <span className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
@@ -185,8 +236,8 @@ function DashboardOverview() {
             </div>
           </div>
           <div className="flex items-end gap-2 mt-4">
-            <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">73.1</span>
-            <span className="text-sm font-semibold text-emerald-600 mb-1">tCO₂e/year</span>
+            <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">{totalEmissions.toLocaleString()}</span>
+            <span className="text-sm font-semibold text-emerald-600 mb-1">tCO₂e/yr</span>
           </div>
           <div className="h-8 mt-2 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -207,13 +258,13 @@ function DashboardOverview() {
               <h3 className="text-sm font-bold text-gray-800">Potential Savings</h3>
             </div>
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">~18</span>
-              <span className="text-sm font-semibold text-emerald-600 mb-1">tCO₂e/year</span>
+              <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">~{Math.round(totalEmissions * 0.24).toLocaleString()}</span>
+              <span className="text-sm font-semibold text-emerald-600 mb-1">tCO₂e/yr</span>
             </div>
           </div>
           <div className="flex items-center gap-2 mt-4 text-[11px] font-medium text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-100">
             <TreePine size={14} className="text-emerald-600" />
-            Equivalent to planting ~820 trees annually
+            Equivalent to planting ~{Math.round(totalEmissions * 0.24 * 45)} trees
           </div>
         </div>
 
@@ -224,7 +275,7 @@ function DashboardOverview() {
               <div className="p-2 bg-amber-50 rounded-full text-amber-500">
                 <Coins size={20} />
               </div>
-              <h3 className="text-sm font-bold text-gray-800">Estimated Cost Savings</h3>
+              <h3 className="text-sm font-bold text-gray-800">Est. Cost Savings</h3>
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">$12,400</span>
@@ -251,23 +302,23 @@ function DashboardOverview() {
               <h3 className="text-sm font-bold text-gray-800">Active Interventions</h3>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">3</span>
-              <span className="text-sm font-medium text-gray-500 mb-1">in progress</span>
+              <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">{recommendations.length}</span>
+              <span className="text-sm font-medium text-gray-500 mb-1">identified</span>
             </div>
           </div>
           <div className="mt-4">
             <div className="flex justify-between text-xs font-medium text-gray-600 mb-1.5">
-              <span>5 additional opportunities</span>
+              <span>{recommendations.length} total opportunities</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '37%' }}></div>
+              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '100%' }}></div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
         {/* Bar Chart */}
         <div className="lg:col-span-5 bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex flex-col">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4">
@@ -322,21 +373,20 @@ function DashboardOverview() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-xl font-extrabold text-gray-900">73.1</span>
-                <span className="text-[9px] font-medium text-gray-500">tCO₂e/year</span>
+                <span className="text-xl font-extrabold text-gray-900">{totalEmissions.toLocaleString()}</span>
+                <span className="text-[9px] font-medium text-gray-500">tCO₂e/yr</span>
               </div>
             </div>
 
             <div className="flex-1 space-y-3">
-              <div className="text-[10px] text-gray-400 font-medium text-right mb-1 border-b border-gray-100 pb-1">tCO₂e</div>
+              <div className="text-[10px] text-gray-400 font-medium text-right mb-1 border-b border-gray-100 pb-1">%</div>
               {pieData.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
-                    <span className="text-xs font-semibold text-gray-700">{item.name}</span>
-                    <span className="text-[10px] text-gray-400">({item.value === 45.0 ? '61.6' : item.value === 28.0 ? '38.3' : '0.1'}%)</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }}></span>
+                    <span className="text-[11px] font-semibold text-gray-700 truncate" title={item.name}>{item.name}</span>
                   </div>
-                  <span className="text-xs font-bold text-gray-900">{item.value.toFixed(1)}</span>
+                  <span className="text-xs font-bold text-gray-900 ml-2">{item.value.toFixed(1)}%</span>
                 </div>
               ))}
             </div>
@@ -359,7 +409,8 @@ function DashboardOverview() {
               <button 
                 key={idx} 
                 onClick={() => handleQuickAction(action.name)}
-                className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-colors cursor-pointer ${action.primary ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-gray-100 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-200'}`}
+                disabled={refetching}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-colors cursor-pointer disabled:opacity-50 ${action.primary ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-gray-100 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-200'}`}
               >
                 <div className="flex items-center gap-3 text-sm font-medium">
                   <action.icon size={16} className={action.primary ? "text-emerald-600" : "text-gray-400"} />
@@ -382,95 +433,53 @@ function DashboardOverview() {
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">AI-prioritized recommendations based on your data, with estimated impact and ROI.</p>
           </div>
-          <button className="text-sm font-semibold text-gray-700 border border-gray-200 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm">
+          <button onClick={() => navigate('/roi-calculator')} className="text-sm font-semibold text-gray-700 border border-gray-200 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm">
             View All <ArrowRight size={16} />
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Card 1 */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:border-emerald-300 transition-colors cursor-pointer group">
-            <div className="flex items-center justify-between mb-4">
-              <span className="bg-red-50 text-red-600 border border-red-100 text-[10px] font-extrabold uppercase px-2 py-1 rounded">High Priority</span>
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                <Zap size={14} className="text-emerald-500" /> Energy Efficiency
-              </span>
-              <ChevronRight size={16} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
-            </div>
-            <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-emerald-700 transition-colors">Implement Energy Management and Behavioral Controls</h3>
-            <p className="text-xs text-gray-600 leading-relaxed mb-6">Train staff and implement strict shut-down schedules to reduce energy waste without capital expenditure.</p>
-            
-            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100">
+          {recommendations.slice(0, 3).map((rec, idx) => (
+            <div key={idx} onClick={() => navigate('/roi-calculator')} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:border-emerald-300 transition-colors cursor-pointer group flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Leaf size={12} className="text-emerald-500"/> Est. CO₂ Reduction</div>
-                <div className="text-xs font-bold text-emerald-700">11.2 tCO₂e/year</div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className={`text-[10px] font-extrabold uppercase px-2 py-1 rounded ${
+                    rec.priority === 'HIGH' ? 'bg-red-50 text-red-600 border border-red-100' :
+                    rec.priority === 'MEDIUM' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                    'bg-gray-100 text-gray-600 border border-gray-200'
+                  }`}>
+                    {rec.priority} Priority
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    {rec.category}
+                  </span>
+                  <ChevronRight size={16} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-emerald-700 transition-colors">{rec.title}</h3>
+                <p className="text-xs text-gray-600 leading-relaxed mb-6">{rec.description}</p>
               </div>
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Coins size={12} className="text-emerald-500"/> Est. Cost</div>
-                <div className="text-xs font-bold text-gray-900">$10 USD</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Calendar size={12} className="text-gray-400"/> Payback Period</div>
-                <div className="text-xs font-bold text-gray-900">0.1 years</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:border-emerald-300 transition-colors cursor-pointer group">
-            <div className="flex items-center justify-between mb-4">
-              <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-extrabold uppercase px-2 py-1 rounded">Medium Priority</span>
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                <Recycle size={14} className="text-emerald-500" /> Material Circularity
-              </span>
-              <ChevronRight size={16} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
-            </div>
-            <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-emerald-700 transition-colors">Source Recycled Alternatives for Autem labore accusam</h3>
-            <p className="text-xs text-gray-600 leading-relaxed mb-6">Negotiate with suppliers to substitute virgin material with recycled-content alternatives to lower Scope 3 emissions.</p>
-            
-            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100">
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Leaf size={12} className="text-emerald-500"/> Est. CO₂ Reduction</div>
-                <div className="text-xs font-bold text-emerald-700">7.0 tCO₂e/year</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Coins size={12} className="text-emerald-500"/> Est. Cost</div>
-                <div className="text-xs font-bold text-gray-900">$30 USD</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Calendar size={12} className="text-gray-400"/> Payback Period</div>
-                <div className="text-xs font-bold text-gray-900">0.5 years</div>
+              
+              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100">
+                <div>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Leaf size={12} className="text-emerald-500"/> CO₂ Red.</div>
+                  <div className="text-[11px] font-bold text-emerald-700">{rec.co2Reduction}</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Coins size={12} className="text-emerald-500"/> Est. Cost</div>
+                  <div className="text-[11px] font-bold text-gray-900">{rec.estimatedCost}</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Calendar size={12} className="text-gray-400"/> Payback</div>
+                  <div className="text-[11px] font-bold text-gray-900">{rec.payback}</div>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:border-emerald-300 transition-colors cursor-pointer group">
-            <div className="flex items-center justify-between mb-4">
-              <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[10px] font-extrabold uppercase px-2 py-1 rounded">Low Priority</span>
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                <Trash2 size={14} className="text-emerald-500" /> Waste Management
-              </span>
-              <ChevronRight size={16} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
-            </div>
-            <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-emerald-700 transition-colors">Establish Waste Segregation and Local Symbiosis</h3>
-            <p className="text-xs text-gray-600 leading-relaxed mb-6">Segregate Magnam officia omnis at source to divert from landfill to local recyclers, saving on disposal costs.</p>
-            
-            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100">
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Leaf size={12} className="text-emerald-500"/> Est. CO₂ Reduction</div>
-                <div className="text-xs font-bold text-emerald-700">0.1 tCO₂e/year</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Coins size={12} className="text-emerald-500"/> Est. Cost</div>
-                <div className="text-xs font-bold text-gray-900">$10 USD</div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Calendar size={12} className="text-gray-400"/> Payback Period</div>
-                <div className="text-xs font-bold text-gray-900">0.2 years</div>
-              </div>
-            </div>
-          </div>
+          ))}
+          {recommendations.length === 0 && (
+             <div className="col-span-3 bg-gray-50 border border-gray-200 text-gray-500 p-8 rounded-2xl text-center">
+               No recommendations generated yet. Run the AI analysis to get started.
+             </div>
+          )}
         </div>
       </div>
 
@@ -490,6 +499,6 @@ function DashboardOverview() {
           <span className="flex items-center gap-1">Made for a Sustainable Future <Leaf size={12} className="text-emerald-500" /></span>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

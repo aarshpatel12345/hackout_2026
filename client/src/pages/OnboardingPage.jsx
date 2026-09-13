@@ -231,9 +231,9 @@ export default function OnboardingPage() {
 			<header className="relative z-10 max-w-5xl w-full mx-auto flex items-center justify-between py-2">
 				<div className="flex items-center space-x-3">
 					<img
-						src="/logo.png"
+						src="/logo.jpg"
 						alt="CarbonTrace Logo"
-						className="h-8 sm:h-10 w-auto object-contain drop-shadow-lg"
+						className="h-10 sm:h-12 w-auto object-contain rounded-lg shadow-sm border border-gray-200"
 						onError={(e) => { e.currentTarget.style.display = 'none'; }}
 					/>
 				</div>

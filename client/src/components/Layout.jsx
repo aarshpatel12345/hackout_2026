@@ -71,14 +71,9 @@ export default function Layout({ children, activeMenu, setActiveMenu }) {
       {/* SIDEBAR */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between hidden lg:flex sticky top-0 h-screen">
         <div className="flex-1 overflow-y-auto py-4">
-          <div className="px-6 mb-8 flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
-            <div className="bg-emerald-600 rounded-lg p-1.5">
-              <Leaf size={20} className="text-white" />
-            </div>
-            <div>
-              <h1 className="font-bold text-xl tracking-tight leading-none text-gray-900">CARBON<span className="font-light">TRACE</span></h1>
-              <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">Decarbonize Today. A Greener Tomorrow.</p>
-            </div>
+          <div className="px-4 mb-8 mt-4 cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <img src="/logo.jpg" alt="CarbonTrace Logo" className="w-full h-auto rounded-xl shadow-md border border-gray-800" />
+            <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-2 px-2 text-center">Decarbonize Today. A Greener Tomorrow.</p>
           </div>
 
           <nav className="space-y-1 px-3">
