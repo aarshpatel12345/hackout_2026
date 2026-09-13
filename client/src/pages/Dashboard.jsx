@@ -1,982 +1,495 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from "react";
 import {
-	LayoutDashboard,
-	Sparkles,
-	Calculator,
-	Recycle,
-	SlidersHorizontal,
-	RefreshCw,
-	LogOut,
-	ShieldCheck,
-	Flame,
-	Activity,
-	Leaf,
-	DollarSign,
-	Clock,
-	TrendingUp,
-	Boxes,
-	FileText,
-	CheckCircle2,
-	ArrowUpRight,
-	Building2,
-	HelpCircle,
-	ChevronRight,
-	User,
-	Zap,
-	Box,
-	Trash2,
+  Sparkles,
+  Calculator,
+  Flame,
+  FileText,
+  Database,
+  Settings,
+  HelpCircle,
+  Sun,
+  RefreshCw,
+  Search,
+  Bell,
+  Calendar,
+  ChevronDown,
+  ShieldCheck,
+  ArrowRight,
+  TrendingDown,
+  TreePine,
+  Coins,
+  Activity,
+  Zap,
+  Trash2,
+  PlusCircle,
+  Upload,
+  BarChart3,
+  ChevronRight,
+  Leaf,
+  Recycle,
+  LayoutDashboard
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line
+} from "recharts";
+import Layout from "../components/Layout";
+
+const barData = [
+  { name: 'Jan', scope1: 45, scope2: 25, scope3: 20 },
+  { name: 'Feb', scope1: 50, scope2: 28, scope3: 22 },
+  { name: 'Mar', scope1: 48, scope2: 26, scope3: 21 },
+  { name: 'Apr', scope1: 42, scope2: 22, scope3: 18 },
+  { name: 'May', scope1: 46, scope2: 24, scope3: 20 },
+  { name: 'Jun', scope1: 49, scope2: 27, scope3: 23 },
+  { name: 'Jul', scope1: 52, scope2: 29, scope3: 25 },
+  { name: 'Aug', scope1: 55, scope2: 30, scope3: 26 },
+  { name: 'Sep', scope1: 47, scope2: 25, scope3: 21 },
+  { name: 'Oct', scope1: 44, scope2: 23, scope3: 19 },
+  { name: 'Nov', scope1: 41, scope2: 21, scope3: 18 },
+  { name: 'Dec', scope1: 39, scope2: 20, scope3: 17 },
+];
+
+const pieData = [
+  { name: 'Energy', value: 45.0, color: '#059669' }, 
+  { name: 'Virgin Material', value: 28.0, color: '#34d399' }, 
+  { name: 'Landfilled Waste', value: 0.1, color: '#a7f3d0' }, 
+];
+
+const miniLineData1 = [{v: 40}, {v: 30}, {v: 45}, {v: 25}, {v: 35}, {v: 20}];
+const miniLineData2 = [{v: 100}, {v: 120}, {v: 105}, {v: 130}, {v: 140}, {v: 160}];
+
+// A simple placeholder component for tabs not yet fully built out
+const PlaceholderView = ({ title, icon: Icon }) => (
+  <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">
+    <Icon size={64} className="mb-4 text-gray-200" />
+    <h2 className="text-xl font-bold text-gray-600 mb-2">{title}</h2>
+    <p className="text-sm">This module is part of the CarbonTrace enterprise suite.</p>
+  </div>
+);
+
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
-import ParticleBackground from "../components/ParticleBackground";
-import { useAuth } from "../context/AuthContext";
-import { calculateAnalysisApi, getAnalysisApi } from "../api/analysisApi";
+
+// ... (imports remain)
 
 export default function Dashboard() {
-	const navigate = useNavigate();
-	const auth = useAuth();
-	const logout = auth?.logout;
-	const user = auth?.user;
-
-	const [analysis, setAnalysis] = useState(null);
-	const [loading, setLoading] = useState(true);
-	const [analyzing, setAnalyzing] = useState(false);
-	const [activeTab, setActiveTab] = useState("overview"); // "overview" | "suggestions" | "roi" | "waste"
-	const [activeFilter, setActiveFilter] = useState("ALL");
-
-	// Interactive ROI Calculator State
-	const [roiInvestment, setRoiInvestment] = useState(500000);
-	const [roiEfficiency, setRoiEfficiency] = useState(24);
-	const [roiAnnualCost, setRoiAnnualCost] = useState(1200000);
-
-	// Fetch carbon footprint analysis on load
-	useEffect(() => {
-		let isMounted = true;
-		const loadDashboardData = async () => {
-			setLoading(true);
-			try {
-				const response = await getAnalysisApi();
-				if (isMounted && response?.data) {
-					setAnalysis(response.data);
-				}
-			} catch (err) {
-				console.error("Dashboard analysis load error:", err);
-			} finally {
-				if (isMounted) setLoading(false);
-			}
-		};
-		loadDashboardData();
-		return () => { isMounted = false; };
-	}, []);
-
-	// Re-run AI analysis engine
-	const handleReAnalyze = async () => {
-		setAnalyzing(true);
-		try {
-			const response = await calculateAnalysisApi();
-			if (response?.data) {
-				setAnalysis(response.data);
-			}
-		} catch (err) {
-			console.error("Re-analysis error:", err);
-		} finally {
-			setAnalyzing(false);
-		}
-	};
-
-	const handleLogout = () => {
-		if (logout) logout();
-		navigate("/login");
-	};
-
-	// Fallback mock data matching exact requested layout & structure
-	const data = analysis || {
-		totalCarbonFootprint: 1240,
-		unit: "tCO2e/year",
-		topEmissionSources: [
-			{ source: "Natural Gas", emissions: 520, unit: "tCO2e", percentage: 42 },
-			{ source: "Virgin Steel Feedstock", emissions: 380, unit: "tCO2e", percentage: 31 },
-			{ source: "Process Waste Slag", emissions: 190, unit: "tCO2e", percentage: 15 },
-			{ source: "Grid Electricity", emissions: 150, unit: "tCO2e", percentage: 12 },
-		],
-		aiSummaryParagraph:
-			"Based on comprehensive Scope 1-3 carbon accounting, your enterprise currently generates an estimated 1,240 tCO2e/year in total greenhouse emissions. The primary emission driver is Natural Gas, accounting for 42% of total emissions. By implementing prioritized circular economy strategies—such as transitioning high-volume feedstock to certified recycled materials, deploying waste-heat recovery on primary thermal infrastructure, and setting up automated scrap reprocessing—your plant can achieve up to 24% net carbon reduction while generating substantial annual operational savings with payback periods under 2 years.",
-		recommendations: [
-			{
-				id: 1,
-				title: "Replace 30% virgin steel with recycled scrap steel",
-				category: "Material Circularity",
-				co2Reduction: "140 tCO2e/year",
-				estimatedCost: "₹8 lakh",
-				payback: "1.8 years",
-				priority: "HIGH",
-				description:
-					"Shift procurement to certified recycled scrap feedstock to eliminate high Scope 3 virgin extraction footprint.",
-			},
-			{
-				id: 2,
-				title: "Install waste-heat recovery on thermal furnace plant",
-				category: "Energy Efficiency",
-				co2Reduction: "95 tCO2e/year",
-				estimatedCost: "₹5 lakh",
-				payback: "1.5 years",
-				priority: "HIGH",
-				description:
-					"Capture flue gas and process waste thermal energy to pre-heat boiler feed water, cutting raw fuel consumption.",
-			},
-			{
-				id: 3,
-				title: "Reuse production scrap & closed-loop briquetting",
-				category: "Waste Reduction",
-				co2Reduction: "60 tCO2e/year",
-				estimatedCost: "₹2.5 lakh",
-				payback: "1.2 years",
-				priority: "MEDIUM",
-				description:
-					"Implement automated scrap sorting and briquetting to re-feed manufacturing processes directly.",
-			},
-		],
-		wasteReuseMatches: [
-			{
-				id: 1,
-				strategyName: "Direct Foundry Sales",
-				strategyDescription: "Segregate scrap types into high-purity briquettes and supply directly to metallurgy foundries as secondary raw material feedstock.",
-				wasteUsedAsRawMaterial: "Metal & Industrial Steel Scrap",
-				targetOrganizations: "Electric Arc Foundries, Steel Rolling Mills, Metallurgy Plants",
-				marketValueRange: "₹25,000 - ₹35,000 / ton",
-			},
-			{
-				id: 2,
-				strategyName: "Eco-Cement Integration",
-				strategyDescription: "Divert solid industrial residues to eco-cement manufacturing plants to serve as a pozzolanic binder replacement.",
-				wasteUsedAsRawMaterial: "Process Slag & Boiler Fly Ash",
-				targetOrganizations: "Cement Manufacturers, Paver Block Units, Infrastructure Contractors",
-				marketValueRange: "₹1,800 - ₹3,500 / ton",
-			},
-			{
-				id: 3,
-				strategyName: "B2B Polymer Exchange",
-				strategyDescription: "Pelletize waste polymers for sales to secondary plastic compounders, achieving 90%+ diversion rate.",
-				wasteUsedAsRawMaterial: "Polymer & Plastic Offcuts",
-				targetOrganizations: "Recycled Plastics Industry, Automotive Trim Producers, Packaging Manufacturers",
-				marketValueRange: "₹10,000 - ₹18,000 / ton",
-			},
-		],
-		calculationEngine: "Google Gemini AI Engine",
-	};
-
-	// ROI Calculations based on interactive sliders
-	const annualSavingsMoney = Math.round((roiAnnualCost * roiEfficiency) / 100);
-	const annualCO2Saved = Math.round(((data.totalCarbonFootprint || 1240) * roiEfficiency) / 100);
-	const paybackYears = Number((roiInvestment / (annualSavingsMoney || 1)).toFixed(1));
-	const roiPercent = Math.round(((annualSavingsMoney * 5 - roiInvestment) / roiInvestment) * 100);
-
-	const roiChartData = [
-		{ year: 'Y0', balance: -roiInvestment },
-		{ year: 'Y1', balance: -roiInvestment + annualSavingsMoney },
-		{ year: 'Y2', balance: -roiInvestment + annualSavingsMoney * 2 },
-		{ year: 'Y3', balance: -roiInvestment + annualSavingsMoney * 3 },
-		{ year: 'Y4', balance: -roiInvestment + annualSavingsMoney * 4 },
-		{ year: 'Y5', balance: -roiInvestment + annualSavingsMoney * 5 },
-	];
-
-	// Filter recommendations
-	const filteredRecommendations = (data.recommendations || []).filter((rec) => {
-		if (activeFilter === "ALL") return true;
-		if (activeFilter === "HIGH") return rec.priority === "HIGH";
-		if (activeFilter === "MATERIAL") return rec.category?.toLowerCase().includes("material");
-		if (activeFilter === "ENERGY") return rec.category?.toLowerCase().includes("energy");
-		return true;
-	});
-
-	// Get user initial badge
-	const userInitial = user?.name ? user.name.trim()[0].toUpperCase() : "S";
-
-	return (
-		<div className="relative min-h-screen w-full bg-[#030908] text-[#EAF7F2] flex font-sans select-none overflow-x-hidden">
-			{/* Animated Canvas Background */}
-			<ParticleBackground />
-
-			{/* ========================================== */}
-			{/* LEFT FIXED NAVIGATION SIDEBAR (DESKTOP)   */}
-			{/* ========================================== */}
-			<aside className="hidden lg:flex flex-col w-60 xl:w-64 fixed left-0 top-0 bottom-0 z-30 bg-[#051411]/90 backdrop-blur-2xl border-r border-[#16362E] p-3 justify-between">
-				<div className="space-y-4">
-					{/* Brand Logo Header */}
-					<div className="flex items-center space-x-2 px-1 py-1">
-						<img
-							src="/logo.png"
-							alt="CarbonTrace Logo"
-							className="h-10 xl:h-11 w-auto object-contain drop-shadow-[0_0_18px_rgba(32,214,138,0.55)]"
-							onError={(e) => { e.currentTarget.style.display = "none"; }}
-						/>
-					</div>
-
-					{/* Navigation Links List */}
-					<nav className="space-y-1 pt-1">
-						<p className="px-2 text-[9px] font-mono font-bold uppercase tracking-widest text-[#86A399]/60 mb-1.5">
-							NAVIGATION MENU
-						</p>
-
-						<button
-							onClick={() => setActiveTab("overview")}
-							className={`w-full flex items-center space-x-2 px-2.5 py-2 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-								activeTab === "overview"
-									? "bg-[#20D68A]/15 border border-[#20D68A]/50 text-[#20D68A] shadow-[0_0_15px_rgba(32,214,138,0.15)]"
-									: "text-[#86A399] hover:text-[#EAF7F2] hover:bg-[#071916]/80"
-							}`}
-						>
-							<LayoutDashboard size={15} className={`shrink-0 ${activeTab === "overview" ? "text-[#20D68A]" : ""}`} />
-							<span className="whitespace-nowrap">Dashboard Overview</span>
-						</button>
-
-						<button
-							onClick={() => setActiveTab("suggestions")}
-							className={`w-full flex items-center space-x-2 px-2.5 py-2 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-								activeTab === "suggestions"
-									? "bg-[#20D68A]/15 border border-[#20D68A]/50 text-[#20D68A] shadow-[0_0_15px_rgba(32,214,138,0.15)]"
-									: "text-[#86A399] hover:text-[#EAF7F2] hover:bg-[#071916]/80"
-							}`}
-						>
-							<Sparkles size={15} className={`shrink-0 ${activeTab === "suggestions" ? "text-[#20D68A]" : ""}`} />
-							<span className="whitespace-nowrap">AI Strategic Suggestions</span>
-						</button>
-
-						<button
-							onClick={() => setActiveTab("roi")}
-							className={`w-full flex items-center space-x-2 px-2.5 py-2 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-								activeTab === "roi"
-									? "bg-[#20D68A]/15 border border-[#20D68A]/50 text-[#20D68A] shadow-[0_0_15px_rgba(32,214,138,0.15)]"
-									: "text-[#86A399] hover:text-[#EAF7F2] hover:bg-[#071916]/80"
-							}`}
-						>
-							<Calculator size={15} className={`shrink-0 ${activeTab === "roi" ? "text-[#20D68A]" : ""}`} />
-							<span className="whitespace-nowrap">ROI & Cost Calculator</span>
-						</button>
-
-						<button
-							onClick={() => setActiveTab("waste")}
-							className={`w-full flex items-center space-x-2 px-2.5 py-2 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-								activeTab === "waste"
-									? "bg-[#20D68A]/15 border border-[#20D68A]/50 text-[#20D68A] shadow-[0_0_15px_rgba(32,214,138,0.15)]"
-									: "text-[#86A399] hover:text-[#EAF7F2] hover:bg-[#071916]/80"
-							}`}
-						>
-							<Recycle size={15} className={`shrink-0 ${activeTab === "waste" ? "text-[#20D68A]" : ""}`} />
-							<span className="whitespace-nowrap">Waste Feedstock Exchange</span>
-						</button>
-
-						<button
-							onClick={() => navigate("/leak-detector")}
-							className={`w-full flex items-center space-x-2 px-2.5 py-2 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer whitespace-nowrap text-[#86A399] hover:text-[#EAF7F2] hover:bg-[#071916]/80`}
-						>
-							<Flame size={15} className="shrink-0 text-[#FF5C5C]" />
-							<span className="whitespace-nowrap">Emission Leak Detector</span>
-						</button>
-					</nav>
-				</div>
-
-				{/* Sidebar Footer - Baseline Action & USER AVATAR */}
-				<div className="space-y-1.5 pt-2 border-t border-[#16362E]">
-					<button
-						onClick={() => navigate("/onboarding")}
-						className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-[#16362E] bg-[#04120E] text-[10.5px] font-semibold text-[#86A399] hover:text-[#20D68A] hover:border-[#20D68A]/50 transition-all cursor-pointer shadow-sm"
-					>
-						<div className="flex items-center space-x-2">
-							<SlidersHorizontal size={13} />
-							<span>Update Baseline</span>
-						</div>
-						<ChevronRight size={12} />
-					</button>
-
-					{/* BOTTOM LEFT USER AVATAR BADGE */}
-					<div className="flex items-center justify-between p-1.5 px-2 rounded-lg bg-[#04120E] border border-[#16362E]">
-						<div className="flex items-center space-x-2 min-w-0">
-							{/* First Letter Avatar Circle */}
-							<div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#20D68A] to-[#0FAF70] text-[#030908] font-bold text-xs flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(32,214,138,0.3)]">
-								{userInitial}
-							</div>
-							<div className="min-w-0 flex flex-col justify-center leading-tight">
-								<p className="text-[10.5px] font-bold text-[#EAF7F2] truncate leading-tight m-0 p-0">
-									{user?.name || "SME Enterprise"}
-								</p>
-								<p className="text-[9px] text-[#86A399] font-mono truncate leading-tight m-0 p-0">
-									{user?.email || "enterprise@carbontrace.io"}
-								</p>
-							</div>
-						</div>
-
-						<button
-							onClick={handleLogout}
-							className="p-1 rounded-md text-[#86A399] hover:text-[#FF5C5C] hover:bg-[#FF5C5C]/10 transition-colors cursor-pointer shrink-0"
-							title="Sign Out"
-						>
-							<LogOut size={14} />
-						</button>
-					</div>
-				</div>
-			</aside>
-
-			{/* ========================================== */}
-			{/* MAIN CONTENT PANEL AREA                    */}
-			{/* ========================================== */}
-			<div className="lg:pl-60 xl:pl-64 flex-1 flex flex-col min-w-0 min-h-screen">
-				{/* Top Header Navigation Bar */}
-				<header className="relative z-20 border-b border-[#16362E] bg-[#071916]/80 backdrop-blur-2xl sticky top-0 px-4 sm:px-6 py-2.5">
-					<div className="max-w-7xl mx-auto flex items-center justify-between">
-						{/* Title Indicator */}
-						<div className="flex items-center space-x-2.5">
-							<div className="w-2 h-2 rounded-full bg-[#20D68A] animate-pulse" />
-							<h1 className="text-xs sm:text-sm font-bold text-[#EAF7F2] tracking-wide uppercase font-mono">
-								{activeTab === "overview" && "DASHBOARD OVERVIEW"}
-								{activeTab === "suggestions" && "AI STRATEGIC SUGGESTIONS"}
-								{activeTab === "roi" && "ROI & COST PAYBACK CALCULATOR"}
-								{activeTab === "waste" && "CIRCULAR WASTE REUSABILITY EXCHANGE"}
-							</h1>
-						</div>
-
-						{/* Action Buttons */}
-						<div className="flex items-center space-x-2.5">
-							<button
-								onClick={handleReAnalyze}
-								disabled={analyzing}
-								className="btn-direct-fill px-3 py-1.5 rounded-xl text-[11px] font-semibold flex items-center space-x-1.5 cursor-pointer shadow-md"
-							>
-								<RefreshCw size={13} className={analyzing ? "animate-spin" : ""} />
-								<span>{analyzing ? "Analyzing..." : "Re-run AI Analysis"}</span>
-							</button>
-
-							<button
-								onClick={handleLogout}
-								className="lg:hidden p-1.5 rounded-lg border border-[#16362E] text-[#86A399] hover:text-[#FF5C5C] transition-colors"
-								title="Sign Out"
-							>
-								<LogOut size={15} />
-							</button>
-						</div>
-					</div>
-
-					{/* Mobile Navigation Pills Bar */}
-					<div className="flex lg:hidden overflow-x-auto space-x-1.5 pt-2 pb-1 border-t border-[#16362E]/60 mt-2 scrollbar-none">
-						<button
-							onClick={() => setActiveTab("overview")}
-							className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap ${
-								activeTab === "overview" ? "bg-[#20D68A] text-[#030908]" : "text-[#86A399] bg-[#04120E]"
-							}`}
-						>
-							Overview
-						</button>
-						<button
-							onClick={() => setActiveTab("suggestions")}
-							className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap ${
-								activeTab === "suggestions" ? "bg-[#20D68A] text-[#030908]" : "text-[#86A399] bg-[#04120E]"
-							}`}
-						>
-							AI Suggestions
-						</button>
-						<button
-							onClick={() => setActiveTab("roi")}
-							className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap ${
-								activeTab === "roi" ? "bg-[#20D68A] text-[#030908]" : "text-[#86A399] bg-[#04120E]"
-							}`}
-						>
-							ROI Calculator
-						</button>
-						<button
-							onClick={() => setActiveTab("waste")}
-							className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap ${
-								activeTab === "waste" ? "bg-[#20D68A] text-[#030908]" : "text-[#86A399] bg-[#04120E]"
-							}`}
-						>
-							Waste Exchange
-						</button>
-						<button
-							onClick={() => navigate("/leak-detector")}
-							className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap text-[#86A399] bg-[#04120E] flex items-center gap-1`}
-						>
-							<Flame size={12} className="text-[#FF5C5C]" />
-							Leak Detector
-						</button>
-					</div>
-				</header>
-
-				{/* Main Tab Content Body */}
-				<main className="relative z-10 max-w-7xl w-full mx-auto p-4 sm:p-5 lg:p-6 space-y-6 flex-1">
-					{(loading || analyzing) ? (
-						<div className="space-y-6 animate-pulse w-full">
-							{/* Skeleton Welcome Header */}
-							<div className="h-[120px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
-							{/* Skeleton Cards Grid */}
-							<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-								<div className="lg:col-span-5 h-[280px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
-								<div className="lg:col-span-7 h-[280px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
-							</div>
-							<div className="h-10 bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full max-w-md"></div>
-							{/* Skeleton recommendations */}
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-								<div className="h-[220px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
-								<div className="h-[220px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
-								<div className="h-[220px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
-							</div>
-						</div>
-					) : (
-						<>
-							{/* Welcome Header Banner */}
-							<div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-[#071916]/80 backdrop-blur-xl border border-[#16362E] p-4 sm:p-5 rounded-2xl shadow-[0_0_40px_rgba(32,214,138,0.1)]">
-						<div>
-							<div className="flex items-center space-x-1.5 text-[11px] text-[#20D68A] font-mono mb-1">
-								<ShieldCheck size={14} />
-								<span>DE-CARBONIZATION OS & AUDIT INTELLIGENCE</span>
-							</div>
-							<h1 className="text-xl sm:text-2xl font-extrabold text-[#EAF7F2] tracking-tight">
-								Welcome back, <span className="text-[#20D68A]">{user?.name || "SME Enterprise"}</span>
-							</h1>
-							<p className="text-xs text-[#86A399] mt-0.5 leading-relaxed">
-								Real-time carbon accounting, AI audit narrative, financial ROI calculations, and circular waste feedstock matching.
-							</p>
-						</div>
-
-						<div className="flex items-center space-x-2.5 bg-[#04120E] border border-[#16362E] px-3.5 py-2 rounded-xl self-start md:self-auto shadow-inner">
-							<Sparkles size={16} className="text-[#20D68A] shrink-0" />
-							<div>
-								<p className="text-[9.5px] uppercase font-mono tracking-wider text-[#86A399]">
-									AI Calculation Engine
-								</p>
-								<p className="text-[11px] font-semibold text-[#EAF7F2]">
-									{data.calculationEngine || "Google Gemini AI"}
-								</p>
-							</div>
-						</div>
-					</div>
-
-					{/* TAB 1: OVERVIEW DASHBOARD */}
-					{activeTab === "overview" && (
-						<motion.div
-							initial={{ opacity: 0, y: 15 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.35 }}
-							className="space-y-5"
-						>
-							{/* Top Metrics Row: Total Carbon Footprint Hero & Summary Cards */}
-							<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-								{/* HERO CARD: Total Carbon Footprint */}
-								<div className="lg:col-span-5 rounded-2xl bg-gradient-to-br from-[#071916] via-[#04120E] to-[#030908] border border-[#20D68A]/40 p-5 sm:p-6 shadow-[0_0_40px_rgba(32,214,138,0.18)] relative overflow-hidden flex flex-col justify-between">
-									<div className="absolute -right-10 -bottom-10 w-48 h-48 bg-[#20D68A]/10 blur-3xl rounded-full pointer-events-none" />
-
-									<div>
-										<div className="flex items-center justify-between mb-3">
-											<span className="text-[10.5px] font-mono font-bold tracking-[0.18em] text-[#20D68A] uppercase flex items-center space-x-1.5">
-												<Flame size={14} />
-												<span>TOTAL CARBON FOOTPRINT</span>
-											</span>
-											<span className="px-2.5 py-0.5 rounded-full bg-[#20D68A]/15 border border-[#20D68A]/40 text-[#20D68A] text-[9.5px] font-mono font-bold">
-												ANNUAL SCOPE 1-3
-											</span>
-										</div>
-
-										<div className="my-3">
-											<div className="flex items-baseline space-x-2.5">
-												<h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#EAF7F2] tracking-tight">
-													{typeof data.totalCarbonFootprint === "number"
-														? data.totalCarbonFootprint.toLocaleString()
-														: data.totalCarbonFootprint}
-												</h2>
-												<span className="text-xs sm:text-sm text-[#20D68A] font-mono font-bold">
-													tCO₂e/year
-												</span>
-											</div>
-											<p className="text-[11px] text-[#86A399] mt-1.5 leading-relaxed">
-												Estimated annual greenhouse gas footprint calculated from SME process inputs across Energy, Materials, and Waste streams.
-											</p>
-										</div>
-									</div>
-
-									{/* Quick Stat Pill Bar */}
-									<div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-[#16362E]">
-										<div className="bg-[#04120E]/90 p-2.5 rounded-xl border border-[#16362E]">
-											<p className="text-[9.5px] text-[#86A399] uppercase font-mono">Potential Savings</p>
-											<p className="text-xs font-bold text-[#20D68A]">~{Math.round((data.totalCarbonFootprint || 1240) * 0.24)} tCO₂e/yr</p>
-										</div>
-										<div className="bg-[#04120E]/90 p-2.5 rounded-xl border border-[#16362E]">
-											<p className="text-[9.5px] text-[#86A399] uppercase font-mono">Net De-carbonization</p>
-											<p className="text-xs font-bold text-[#38D9E8]">-24.0% Total</p>
-										</div>
-									</div>
-								</div>
-
-								{/* TOP EMISSION SOURCES CARD */}
-								<div className="lg:col-span-7 rounded-2xl bg-[#071916]/85 backdrop-blur-2xl border border-[#16362E] p-5 sm:p-6 shadow-[0_0_35px_rgba(32,214,138,0.1)] flex flex-col justify-between">
-									<div>
-										<div className="flex items-center justify-between mb-4 pb-2.5 border-b border-[#16362E]">
-											<div className="flex items-center space-x-2">
-												<Activity size={16} className="text-[#20D68A]" />
-												<h3 className="text-base font-bold text-[#EAF7F2]">Top Emission Sources</h3>
-											</div>
-											<span className="text-[11px] text-[#86A399] font-mono">
-												Ranked by CO₂e Impact
-											</span>
-										</div>
-
-										{/* Emission Source List */}
-										<div className="space-y-3">
-											{(data.topEmissionSources || []).map((item, index) => (
-												<div key={index} className="space-y-1">
-													<div className="flex items-center justify-between text-xs">
-														<div className="flex items-center space-x-2 font-medium">
-															<span className="w-4.5 h-4.5 rounded-full bg-[#16362E] text-[#20D68A] text-[10px] font-bold font-mono flex items-center justify-center shrink-0">
-																{index + 1}
-															</span>
-															<span className="text-[#EAF7F2] font-semibold">{item.source}</span>
-														</div>
-														<div className="flex items-center space-x-1.5 font-mono text-xs">
-															<span className="text-[#20D68A] font-bold">
-																{item.emissions} {item.unit || "tCO2e"}
-															</span>
-															<span className="text-[#86A399] text-[11px]">
-																({item.percentage}%)
-															</span>
-														</div>
-													</div>
-
-													<div className="w-full h-2 rounded-full bg-[#04120E] overflow-hidden border border-[#16362E]">
-														<motion.div
-															initial={{ width: 0 }}
-															animate={{ width: `${item.percentage}%` }}
-															transition={{ duration: 0.8, delay: index * 0.15 }}
-															className={`h-full rounded-full ${
-																index === 0
-																	? "bg-gradient-to-r from-[#20D68A] to-[#38D9E8]"
-																	: index === 1
-																	? "bg-[#20D68A]"
-																	: "bg-[#86A399]"
-															}`}
-														/>
-													</div>
-												</div>
-											))}
-										</div>
-									</div>
-
-									<div className="mt-4 pt-2.5 border-t border-[#16362E]/60 flex items-center justify-between text-[11px] text-[#86A399]">
-										<span>Identified major hotspots requiring circular material & energy intervention.</span>
-									</div>
-								</div>
-							</div>
-
-							{/* Prioritized Circular Interventions */}
-							<div className="space-y-5">
-								<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#16362E] pb-3">
-									<div>
-										<span className="text-[10.5px] font-mono font-bold text-[#20D68A] uppercase tracking-widest">
-											CIRCULAR INTERVENTION ANALYSIS
-										</span>
-										<h2 className="text-lg sm:text-xl font-bold text-[#EAF7F2] tracking-tight">
-											Recommended Interventions & Action Plan
-										</h2>
-									</div>
-
-									{/* Filter Pills */}
-									<div className="flex items-center space-x-1.5 bg-[#04120E] border border-[#16362E] p-1 rounded-xl text-[11px] font-semibold">
-										{["ALL", "HIGH", "MATERIAL", "ENERGY"].map((filter) => (
-											<button
-												key={filter}
-												onClick={() => setActiveFilter(filter)}
-												className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-													activeFilter === filter
-														? "bg-[#20D68A] text-[#030908] font-bold shadow-md"
-														: "text-[#86A399] hover:text-[#EAF7F2]"
-												}`}
-											>
-												{filter === "ALL" ? "All Interventions" : filter === "HIGH" ? "High Priority" : filter}
-											</button>
-										))}
-									</div>
-								</div>
-
-								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-									{filteredRecommendations.map((item, index) => (
-										<div
-											key={item.id || index}
-											className="rounded-2xl bg-[#071916]/85 backdrop-blur-2xl border border-[#16362E] p-4 sm:p-5 shadow-[0_0_25px_rgba(32,214,138,0.06)] hover:border-[#20D68A]/50 transition-all flex flex-col justify-between relative group space-y-3"
-										>
-											<div>
-												<div className="flex items-center justify-between mb-2">
-													<span className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-[#86A399] bg-[#04120E] px-2.5 py-0.5 rounded-lg border border-[#16362E]">
-														{item.category || "Circular Strategy"}
-													</span>
-													<span
-														className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-bold font-mono tracking-wider border ${
-															item.priority === "HIGH"
-																? "bg-[#20D68A]/15 border-[#20D68A]/50 text-[#20D68A]"
-																: "bg-[#38D9E8]/15 border-[#38D9E8]/50 text-[#38D9E8]"
-														}`}
-													>
-														{item.priority} PRIORITY
-													</span>
-												</div>
-
-												<h3 className="text-xs sm:text-sm font-bold text-[#EAF7F2] group-hover:text-[#20D68A] transition-colors leading-snug mb-1.5">
-													{item.id || index + 1}. {item.title}
-												</h3>
-												<p className="text-[11px] text-[#86A399] leading-relaxed">
-													{item.description}
-												</p>
-											</div>
-
-											<div className="space-y-2 pt-2.5 border-t border-[#16362E]/80 font-mono bg-[#04120E]/50 p-2.5 rounded-xl border border-[#16362E]/40 text-[11px]">
-												<div className="flex items-center justify-between">
-													<span className="text-[#86A399] flex items-center space-x-1.5">
-														<Leaf size={13} className="text-[#20D68A]" />
-														<span>Est. CO₂ Reduction:</span>
-													</span>
-													<span className="text-[#20D68A] font-bold">{item.co2Reduction}</span>
-												</div>
-
-												<div className="flex items-center justify-between">
-													<span className="text-[#86A399] flex items-center space-x-1.5">
-														<DollarSign size={13} className="text-[#38D9E8]" />
-														<span>Est. Cost:</span>
-													</span>
-													<span className="text-[#EAF7F2] font-semibold">{item.estimatedCost}</span>
-												</div>
-
-												<div className="flex items-center justify-between">
-													<span className="text-[#86A399] flex items-center space-x-1.5">
-														<Clock size={13} className="text-[#86A399]" />
-														<span>Payback Period:</span>
-													</span>
-													<span className="text-[#EAF7F2] font-semibold">{item.payback}</span>
-												</div>
-											</div>
-										</div>
-									))}
-								</div>
-							</div>
-						</motion.div>
-					)}
-
-					{/* TAB 2: AI STRATEGIC SUGGESTIONS PARAGRAPH & AUDIT REPORT */}
-					{activeTab === "suggestions" && (
-						<motion.div
-							initial={{ opacity: 0, y: 15 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.35 }}
-							className="space-y-5"
-						>
-							{/* AI EXECUTIVE NARRATIVE PARAGRAPH BLOCK */}
-							<div className="rounded-2xl bg-gradient-to-br from-[#071916] via-[#051613] to-[#030908] border border-[#20D68A]/40 p-5 sm:p-6 shadow-[0_0_40px_rgba(32,214,138,0.12)] relative overflow-hidden">
-								<div className="flex items-center space-x-2 text-[11px] font-mono font-bold text-[#20D68A] uppercase mb-3">
-									<Sparkles size={16} />
-									<span>AI EXECUTIVE AUDIT NARRATIVE & SUGGESTIONS</span>
-								</div>
-
-								<div className="p-4 sm:p-5 rounded-xl bg-[#04120E]/90 border border-[#20D68A]/30 text-xs sm:text-sm leading-relaxed text-[#EAF7F2] shadow-inner font-sans">
-									<p className="first-letter:text-2xl first-letter:font-extrabold first-letter:text-[#20D68A] first-letter:mr-1">
-										{data.aiSummaryParagraph}
-									</p>
-								</div>
-							</div>
-
-							{/* STRATEGIC DE-CARBONIZATION PILLARS */}
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-								<div className="rounded-2xl bg-[#071916]/85 border border-[#16362E] p-4.5 space-y-2.5">
-									<div className="w-8 h-8 rounded-xl bg-[#20D68A]/10 border border-[#20D68A]/30 text-[#20D68A] flex items-center justify-center">
-										<Zap size={16} />
-									</div>
-									<h3 className="text-sm font-bold text-[#EAF7F2]">Scope 1 Thermal Recovery</h3>
-									<p className="text-[11px] text-[#86A399] leading-relaxed">
-										Deploy high-efficiency waste heat recovery on boilers and flue gas exhaust stacks. Recover thermal energy to pre-heat feedwater and reduce fossil gas burn by 15-20%.
-									</p>
-								</div>
-
-								<div className="rounded-2xl bg-[#071916]/85 border border-[#16362E] p-4.5 space-y-2.5">
-									<div className="w-8 h-8 rounded-xl bg-[#38D9E8]/10 border border-[#38D9E8]/30 text-[#38D9E8] flex items-center justify-center">
-										<Box size={16} />
-									</div>
-									<h3 className="text-sm font-bold text-[#EAF7F2]">Scope 3 Feedstock Substitution</h3>
-									<p className="text-[11px] text-[#86A399] leading-relaxed">
-										Replace virgin industrial metal/polymer inputs with 30-40% certified recycled scrap feedstock. Drastically lowers upstream extraction footprint and raw material procurement costs.
-									</p>
-								</div>
-
-								<div className="rounded-2xl bg-[#071916]/85 border border-[#16362E] p-4.5 space-y-2.5">
-									<div className="w-8 h-8 rounded-xl bg-[#A78BFA]/10 border border-[#A78BFA]/30 text-[#A78BFA] flex items-center justify-center">
-										<Recycle size={16} />
-									</div>
-									<h3 className="text-sm font-bold text-[#EAF7F2]">Circular Byproduct Monetization</h3>
-									<p className="text-[11px] text-[#86A399] leading-relaxed">
-										Channel solid process slag, ash, and polymer offcuts to verified B2B recycling partners in cement, metallurgy, and packaging industries to turn waste into a secondary revenue line.
-									</p>
-								</div>
-							</div>
-						</motion.div>
-					)}
-
-					{/* TAB 3: ROI & FINANCIAL PAYBACK CALCULATOR */}
-					{activeTab === "roi" && (
-						<motion.div
-							initial={{ opacity: 0, y: 15 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.35 }}
-							className="space-y-5"
-						>
-							<div className="border-b border-[#16362E] pb-3">
-								<span className="text-[10.5px] font-mono font-bold text-[#20D68A] uppercase tracking-widest">
-									INTERACTIVE FINANCIAL MODELING
-								</span>
-								<h2 className="text-lg sm:text-xl font-bold text-[#EAF7F2]">
-									De-carbonization ROI & Payback Calculator
-								</h2>
-								<p className="text-[11px] text-[#86A399] mt-0.5">
-									Adjust investment variables below to calculate your estimated annual utility cost savings, payback timeline, and 5-year return on investment.
-								</p>
-							</div>
-
-							<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-								{/* SLIDERS & INPUT CONTROL PANEL */}
-								<div className="lg:col-span-6 rounded-2xl bg-[#071916]/85 backdrop-blur-2xl border border-[#16362E] p-5 sm:p-6 space-y-4 shadow-xl">
-									<h3 className="text-xs font-bold text-[#20D68A] uppercase font-mono flex items-center space-x-2">
-										<SlidersHorizontal size={14} />
-										<span>Investment & Operational Variables</span>
-									</h3>
-
-									{/* Investment Slider */}
-									<div className="space-y-1.5">
-										<div className="flex justify-between text-[11px] font-semibold">
-											<span className="text-[#86A399]">Capital Investment Budget ($)</span>
-											<span className="text-[#20D68A] font-mono font-bold">
-												${roiInvestment.toLocaleString()}
-											</span>
-										</div>
-										<input
-											type="range"
-											min="100000"
-											max="2000000"
-											step="50000"
-											value={roiInvestment}
-											onChange={(e) => setRoiInvestment(Number(e.target.value))}
-											className="w-full accent-[#20D68A] cursor-pointer bg-[#04120E] h-1.5 rounded-lg"
-										/>
-									</div>
-
-									{/* Target Efficiency Reduction Slider */}
-									<div className="space-y-1.5">
-										<div className="flex justify-between text-[11px] font-semibold">
-											<span className="text-[#86A399]">Target Energy & Material Reduction (%)</span>
-											<span className="text-[#38D9E8] font-mono font-bold">{roiEfficiency}%</span>
-										</div>
-										<input
-											type="range"
-											min="5"
-											max="50"
-											step="1"
-											value={roiEfficiency}
-											onChange={(e) => setRoiEfficiency(Number(e.target.value))}
-											className="w-full accent-[#38D9E8] cursor-pointer bg-[#04120E] h-1.5 rounded-lg"
-										/>
-									</div>
-
-									{/* Annual Utility & Feedstock Cost Slider */}
-									<div className="space-y-1.5">
-										<div className="flex justify-between text-[11px] font-semibold">
-											<span className="text-[#86A399]">Annual Energy & Raw Material Expense ($/yr)</span>
-											<span className="text-[#EAF7F2] font-mono font-bold">
-												${roiAnnualCost.toLocaleString()}
-											</span>
-										</div>
-										<input
-											type="range"
-											min="300000"
-											max="5000000"
-											step="100000"
-											value={roiAnnualCost}
-											onChange={(e) => setRoiAnnualCost(Number(e.target.value))}
-											className="w-full accent-[#20D68A] cursor-pointer bg-[#04120E] h-1.5 rounded-lg"
-										/>
-									</div>
-								</div>
-
-								{/* ROI METRICS OUTPUT PANEL */}
-								<div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-									<div className="rounded-2xl bg-[#04120E] border border-[#20D68A]/40 p-4.5 flex flex-col justify-between shadow-[0_0_25px_rgba(32,214,138,0.12)]">
-										<div className="flex items-center justify-between text-[#86A399] text-[10.5px] font-mono uppercase">
-											<span>Annual Utility Cost Saved</span>
-											<DollarSign size={14} className="text-[#20D68A]" />
-										</div>
-										<div className="my-2">
-											<p className="text-2xl sm:text-3xl font-extrabold text-[#20D68A] font-mono">
-												${annualSavingsMoney.toLocaleString()}
-											</p>
-											<p className="text-[10px] text-[#86A399] mt-0.5">Direct annual operational savings</p>
-										</div>
-									</div>
-
-									<div className="rounded-2xl bg-[#04120E] border border-[#38D9E8]/40 p-4.5 flex flex-col justify-between shadow-[0_0_25px_rgba(56,217,232,0.12)]">
-										<div className="flex items-center justify-between text-[#86A399] text-[10.5px] font-mono uppercase">
-											<span>Payback Timeline</span>
-											<Clock size={14} className="text-[#38D9E8]" />
-										</div>
-										<div className="my-2">
-											<p className="text-2xl sm:text-3xl font-extrabold text-[#38D9E8] font-mono">
-												{paybackYears} Years
-											</p>
-											<p className="text-[10px] text-[#86A399] mt-0.5">Break-even capital recovery</p>
-										</div>
-									</div>
-
-									<div className="rounded-2xl bg-[#04120E] border border-[#16362E] p-4.5 flex flex-col justify-between">
-										<div className="flex items-center justify-between text-[#86A399] text-[10.5px] font-mono uppercase">
-											<span>Annual CO₂ Carbon Offset</span>
-											<Leaf size={14} className="text-[#20D68A]" />
-										</div>
-										<div className="my-2">
-											<p className="text-2xl sm:text-3xl font-extrabold text-[#EAF7F2] font-mono">
-												{annualCO2Saved.toLocaleString()} tCO₂e
-											</p>
-											<p className="text-[10px] text-[#86A399] mt-0.5">Emissions avoided annually</p>
-										</div>
-									</div>
-
-									<div className="rounded-2xl bg-[#04120E] border border-[#16362E] p-4.5 flex flex-col justify-between">
-										<div className="flex items-center justify-between text-[#86A399] text-[10.5px] font-mono uppercase">
-											<span>5-Year Net ROI</span>
-											<TrendingUp size={14} className="text-[#20D68A]" />
-										</div>
-										<div className="my-2">
-											<p className="text-2xl sm:text-3xl font-extrabold text-[#20D68A] font-mono">
-												+{roiPercent}%
-											</p>
-											<p className="text-[10px] text-[#86A399] mt-0.5">Cumulative net return</p>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							{/* ROI DOTTED LINE CHART */}
-							<div className="rounded-2xl bg-[#071916]/85 backdrop-blur-2xl border border-[#16362E] p-5 sm:p-6 shadow-xl">
-								<div className="flex items-center justify-between mb-4">
-									<h3 className="text-xs font-bold text-[#20D68A] uppercase font-mono flex items-center space-x-2">
-										<TrendingUp size={14} />
-										<span>5-Year Cumulative Cash Flow Projection</span>
-									</h3>
-								</div>
-								<div className="w-full h-64">
-									<ResponsiveContainer width="100%" height="100%">
-										<LineChart data={roiChartData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-											<CartesianGrid strokeDasharray="3 3" stroke="#16362E" vertical={false} />
-											<XAxis dataKey="year" stroke="#86A399" fontSize={10} tickLine={false} axisLine={false} />
-											<YAxis
-												stroke="#86A399"
-												fontSize={10}
-												tickLine={false}
-												axisLine={false}
-												tickFormatter={(value) => `$${(value / 1000)}k`}
-											/>
-											<RechartsTooltip
-												contentStyle={{ backgroundColor: '#04120E', borderColor: '#16362E', borderRadius: '8px', fontSize: '11px', color: '#EAF7F2' }}
-												itemStyle={{ color: '#20D68A' }}
-												formatter={(value) => [`$${value.toLocaleString()}`, 'Balance']}
-											/>
-											<Line
-												type="monotone"
-												dataKey="balance"
-												stroke="#20D68A"
-												strokeWidth={2}
-												strokeDasharray="5 5"
-												dot={{ r: 4, fill: '#04120E', stroke: '#38D9E8', strokeWidth: 2 }}
-												activeDot={{ r: 6, fill: '#20D68A', stroke: '#04120E' }}
-											/>
-										</LineChart>
-									</ResponsiveContainer>
-								</div>
-							</div>
-						</motion.div>
-					)}
-
-					{/* TAB 4: CIRCULAR WASTE REUSABILITY & RAW MATERIAL FEEDSTOCK EXCHANGE */}
-					{activeTab === "waste" && (
-						<motion.div
-							initial={{ opacity: 0, y: 15 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.35 }}
-							className="space-y-5"
-						>
-							<div className="border-b border-[#16362E] pb-3">
-								<span className="text-[10.5px] font-mono font-bold text-[#20D68A] uppercase tracking-widest">
-									CIRCULAR ECONOMY WASTAGE MATCHMAKING
-								</span>
-								<h2 className="text-lg sm:text-xl font-bold text-[#EAF7F2]">
-									Waste Reusability & Feedstock Exchange
-								</h2>
-								<p className="text-[11px] text-[#86A399] mt-0.5">
-									Identify how your plant's waste streams can be repurposed into valuable raw materials for target purchasing industries and organizations.
-								</p>
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-								{(data.wasteReuseMatches || []).map((item, index) => (
-									<div
-										key={item.id || index}
-										className="rounded-2xl bg-[#071916]/85 backdrop-blur-2xl border border-[#16362E] p-4.5 shadow-[0_0_25px_rgba(32,214,138,0.06)] hover:border-[#20D68A]/50 transition-all flex flex-col justify-between space-y-3"
-									>
-										<div>
-											<div className="flex items-center justify-between mb-2">
-												<span className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-[#20D68A] bg-[#20D68A]/10 border border-[#20D68A]/30 px-2.5 py-0.5 rounded-full">
-													Strategy Match
-												</span>
-											</div>
-
-											<h3 className="text-xs sm:text-sm font-bold text-[#EAF7F2] mb-1">
-												{index + 1}. {item.strategyName}
-											</h3>
-											<p className="text-[11px] text-[#86A399] leading-relaxed">
-												{item.strategyDescription}
-											</p>
-										</div>
-
-										<div className="space-y-2 pt-2.5 border-t border-[#16362E] font-mono text-[11px] bg-[#04120E]/60 p-3 rounded-xl border border-[#16362E]/40">
-											<div>
-												<span className="text-[9.5px] text-[#86A399] uppercase block font-semibold">
-													Waste Used as Raw Material:
-												</span>
-												<span className="text-[#20D68A] font-bold block">
-													{item.wasteUsedAsRawMaterial}
-												</span>
-											</div>
-
-											<div className="pt-0.5">
-												<span className="text-[9.5px] text-[#86A399] uppercase block font-semibold">
-													Target Organizations:
-												</span>
-												<span className="text-[#EAF7F2] font-semibold block leading-tight">
-													{item.targetOrganizations}
-												</span>
-											</div>
-
-											<div className="pt-1 flex justify-between items-center border-t border-[#16362E]/60 mt-2 pt-2">
-												<span className="text-[9.5px] text-[#86A399] uppercase">
-													Market Value Range:
-												</span>
-												<span className="text-[#38D9E8] font-bold">
-													{item.marketValueRange}
-												</span>
-											</div>
-										</div>
-									</div>
-								))}
-							</div>
-						</motion.div>
-					)}
-						</>
-					)}
-				</main>
-
-				{/* Footer */}
-				<footer className="relative z-10 border-t border-[#16362E] py-3 text-center text-[10.5px] text-[#86A399]/60 font-mono">
-					CARBONTRACE &copy; 2026 &bull; POWERED BY GOOGLE GEMINI AI & IPCC EMISSION AUDIT PROTOCOLS
-				</footer>
-			</div>
-		</div>
-	);
+  return (
+    <Layout>
+      <DashboardOverview />
+    </Layout>
+  );
+}
+
+function DashboardOverview() {
+  const navigate = useNavigate();
+
+  const handleQuickAction = (actionName) => {
+    if (actionName === "Run AI Analysis") {
+      navigate("/ai-insights");
+    } else if (actionName === "Calculate ROI") {
+      navigate("/roi-calculator");
+    } else {
+      alert(`Action Triggered: ${actionName}`);
+    }
+  };
+
+  return (
+    <>
+      {/* Top Hero Row */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Hero Banner */}
+        <div className="flex-1 bg-white rounded-2xl border border-gray-200 overflow-hidden relative shadow-sm flex min-h-[220px]">
+          <div className="w-full lg:w-[60%] p-6 flex flex-col justify-center relative z-10 bg-gradient-to-r from-white via-white to-transparent">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-3 tracking-wide uppercase">
+              <ShieldCheck size={16} className="text-emerald-500" />
+              DE-CARBONIZATION OS & AUDIT INTELLIGENCE
+            </div>
+            <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
+              Welcome back, <span className="text-emerald-600">Adam Mays</span>
+            </h2>
+            <p className="text-gray-600 font-medium text-lg mb-2">
+              Turn operational data into measurable climate action.
+            </p>
+            <p className="text-gray-500 text-sm max-w-md leading-relaxed">
+              Real-time carbon accounting, AI audit narrative, financial ROI calculations, and circular waste feedstock matching — all in one place.
+            </p>
+          </div>
+          
+          <div className="absolute right-0 top-0 bottom-0 w-[50%] overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent z-10 w-1/3"></div>
+            <img 
+              src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1000" 
+              alt="Forest Landscape" 
+              className="w-full h-full object-cover object-left"
+            />
+            <div className="absolute bottom-6 right-6 z-20 text-right">
+              <p className="text-white font-bold text-sm drop-shadow-md">Smarter Decisions.</p>
+              <p className="text-white font-extrabold text-lg drop-shadow-md">A Cleaner Tomorrow.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Engine Card */}
+        <div className="w-full lg:w-72 bg-white rounded-2xl border border-emerald-100 shadow-sm p-5 flex flex-col justify-between border-t-4 border-t-emerald-400">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="bg-emerald-50 p-1.5 rounded-lg text-emerald-600">
+                <Sparkles size={18} />
+              </div>
+              <h3 className="font-bold text-xs text-gray-500 tracking-wide uppercase">AI Analysis Engine</h3>
+            </div>
+            <p className="font-bold text-gray-900 text-base leading-tight mb-2">
+              Powered by <span className="text-emerald-600">Google Gemini AI</span><br/>
+              <span className="text-xs font-normal text-gray-500">(gemini-3.5-flash)</span>
+            </p>
+            <p className="text-xs text-gray-600 leading-relaxed mb-4">
+              Get instant insights, recommendations and audit-ready narratives.
+            </p>
+          </div>
+          <button 
+            onClick={() => handleQuickAction("Run AI Analysis")}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+          >
+            Re-run AI Analysis
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Metrics Row (4 Cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Carbon Footprint */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-emerald-50 rounded-full text-emerald-600">
+                <TreePine size={20} />
+              </div>
+              <h3 className="text-sm font-bold text-gray-800">Total Carbon Footprint</h3>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                <TrendingDown size={12} className="mr-1" /> 24.0%
+              </span>
+              <span className="text-[9px] text-gray-400 mt-0.5">vs. baseline</span>
+            </div>
+          </div>
+          <div className="flex items-end gap-2 mt-4">
+            <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">73.1</span>
+            <span className="text-sm font-semibold text-emerald-600 mb-1">tCO₂e/year</span>
+          </div>
+          <div className="h-8 mt-2 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={miniLineData1}>
+                <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={false} isAnimationActive={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Potential Savings */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-emerald-50 rounded-full text-emerald-600">
+                <Leaf size={20} />
+              </div>
+              <h3 className="text-sm font-bold text-gray-800">Potential Savings</h3>
+            </div>
+            <div className="flex items-end gap-2">
+              <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">~18</span>
+              <span className="text-sm font-semibold text-emerald-600 mb-1">tCO₂e/year</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-4 text-[11px] font-medium text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+            <TreePine size={14} className="text-emerald-600" />
+            Equivalent to planting ~820 trees annually
+          </div>
+        </div>
+
+        {/* Estimated Cost Savings */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-amber-50 rounded-full text-amber-500">
+                <Coins size={20} />
+              </div>
+              <h3 className="text-sm font-bold text-gray-800">Estimated Cost Savings</h3>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">$12,400</span>
+            </div>
+          </div>
+          <div className="h-8 mt-1 w-full relative">
+              <div className="absolute -top-6 right-0 text-[10px] text-gray-400">by year-end</div>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={miniLineData2}>
+                <Line type="monotone" dataKey="v" stroke="#f59e0b" strokeWidth={2} dot={false} isAnimationActive={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-[10px] text-gray-500 mt-2">Based on recommended interventions</p>
+        </div>
+
+        {/* Active Interventions */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex flex-col justify-between">
+            <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-blue-50 rounded-full text-blue-500">
+                <Settings size={20} />
+              </div>
+              <h3 className="text-sm font-bold text-gray-800">Active Interventions</h3>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-extrabold text-gray-900 tracking-tighter">3</span>
+              <span className="text-sm font-medium text-gray-500 mb-1">in progress</span>
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="flex justify-between text-xs font-medium text-gray-600 mb-1.5">
+              <span>5 additional opportunities</span>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-2">
+              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '37%' }}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Bar Chart */}
+        <div className="lg:col-span-5 bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex flex-col">
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4">
+            <Leaf size={16} /> Carbon Emissions Trend
+          </h3>
+          
+          <div className="flex gap-4 justify-end mb-2 text-xs font-medium text-gray-600">
+            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-800"></span> Scope 1</div>
+            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-600"></span> Scope 2</div>
+            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-300"></span> Scope 3</div>
+          </div>
+
+          <div className="h-[200px] w-full flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} label={{ value: 'tCO₂e', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6b7280', fontSize: 10 } }} />
+                <Tooltip cursor={{ fill: '#f9fafb' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                <Bar dataKey="scope1" stackId="a" fill="#065f46" radius={[0, 0, 4, 4]} barSize={16} />
+                <Bar dataKey="scope2" stackId="a" fill="#059669" />
+                <Bar dataKey="scope3" stackId="a" fill="#6ee7b7" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Donut Chart */}
+        <div className="lg:col-span-4 bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex flex-col">
+            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4">
+            <Database size={16} /> Emissions by Source
+          </h3>
+          
+          <div className="flex-1 flex items-center gap-4">
+            <div className="relative w-[140px] h-[140px] shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={65}
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-xl font-extrabold text-gray-900">73.1</span>
+                <span className="text-[9px] font-medium text-gray-500">tCO₂e/year</span>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-3">
+              <div className="text-[10px] text-gray-400 font-medium text-right mb-1 border-b border-gray-100 pb-1">tCO₂e</div>
+              {pieData.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
+                    <span className="text-xs font-semibold text-gray-700">{item.name}</span>
+                    <span className="text-[10px] text-gray-400">({item.value === 45.0 ? '61.6' : item.value === 28.0 ? '38.3' : '0.1'}%)</span>
+                  </div>
+                  <span className="text-xs font-bold text-gray-900">{item.value.toFixed(1)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex flex-col">
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4">
+            <Zap size={16} /> Quick Actions
+          </h3>
+          
+          <div className="space-y-2 flex-1">
+            {[
+              { name: "Run AI Analysis", icon: Sparkles, primary: true },
+              { name: "Add New Facility", icon: PlusCircle },
+              { name: "Generate Report", icon: FileText },
+              { name: "Calculate ROI", icon: Calculator },
+            ].map((action, idx) => (
+              <button 
+                key={idx} 
+                onClick={() => handleQuickAction(action.name)}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-colors cursor-pointer ${action.primary ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-gray-100 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-200'}`}
+              >
+                <div className="flex items-center gap-3 text-sm font-medium">
+                  <action.icon size={16} className={action.primary ? "text-emerald-600" : "text-gray-400"} />
+                  {action.name}
+                </div>
+                <ChevronRight size={16} className={action.primary ? "text-emerald-500" : "text-gray-300"} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Interventions Section */}
+      <div className="pt-2">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Activity className="text-emerald-500" size={20} />
+              Recommended Interventions & Action Plan
+            </h2>
+            <p className="text-sm text-gray-500 mt-0.5">AI-prioritized recommendations based on your data, with estimated impact and ROI.</p>
+          </div>
+          <button className="text-sm font-semibold text-gray-700 border border-gray-200 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm">
+            View All <ArrowRight size={16} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Card 1 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:border-emerald-300 transition-colors cursor-pointer group">
+            <div className="flex items-center justify-between mb-4">
+              <span className="bg-red-50 text-red-600 border border-red-100 text-[10px] font-extrabold uppercase px-2 py-1 rounded">High Priority</span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <Zap size={14} className="text-emerald-500" /> Energy Efficiency
+              </span>
+              <ChevronRight size={16} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
+            </div>
+            <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-emerald-700 transition-colors">Implement Energy Management and Behavioral Controls</h3>
+            <p className="text-xs text-gray-600 leading-relaxed mb-6">Train staff and implement strict shut-down schedules to reduce energy waste without capital expenditure.</p>
+            
+            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100">
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Leaf size={12} className="text-emerald-500"/> Est. CO₂ Reduction</div>
+                <div className="text-xs font-bold text-emerald-700">11.2 tCO₂e/year</div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Coins size={12} className="text-emerald-500"/> Est. Cost</div>
+                <div className="text-xs font-bold text-gray-900">$10 USD</div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Calendar size={12} className="text-gray-400"/> Payback Period</div>
+                <div className="text-xs font-bold text-gray-900">0.1 years</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:border-emerald-300 transition-colors cursor-pointer group">
+            <div className="flex items-center justify-between mb-4">
+              <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-extrabold uppercase px-2 py-1 rounded">Medium Priority</span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <Recycle size={14} className="text-emerald-500" /> Material Circularity
+              </span>
+              <ChevronRight size={16} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
+            </div>
+            <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-emerald-700 transition-colors">Source Recycled Alternatives for Autem labore accusam</h3>
+            <p className="text-xs text-gray-600 leading-relaxed mb-6">Negotiate with suppliers to substitute virgin material with recycled-content alternatives to lower Scope 3 emissions.</p>
+            
+            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100">
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Leaf size={12} className="text-emerald-500"/> Est. CO₂ Reduction</div>
+                <div className="text-xs font-bold text-emerald-700">7.0 tCO₂e/year</div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Coins size={12} className="text-emerald-500"/> Est. Cost</div>
+                <div className="text-xs font-bold text-gray-900">$30 USD</div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Calendar size={12} className="text-gray-400"/> Payback Period</div>
+                <div className="text-xs font-bold text-gray-900">0.5 years</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:border-emerald-300 transition-colors cursor-pointer group">
+            <div className="flex items-center justify-between mb-4">
+              <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[10px] font-extrabold uppercase px-2 py-1 rounded">Low Priority</span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <Trash2 size={14} className="text-emerald-500" /> Waste Management
+              </span>
+              <ChevronRight size={16} className="text-gray-300 group-hover:text-emerald-500 transition-colors" />
+            </div>
+            <h3 className="font-bold text-gray-900 text-sm mb-2 group-hover:text-emerald-700 transition-colors">Establish Waste Segregation and Local Symbiosis</h3>
+            <p className="text-xs text-gray-600 leading-relaxed mb-6">Segregate Magnam officia omnis at source to divert from landfill to local recyclers, saving on disposal costs.</p>
+            
+            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100">
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Leaf size={12} className="text-emerald-500"/> Est. CO₂ Reduction</div>
+                <div className="text-xs font-bold text-emerald-700">0.1 tCO₂e/year</div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Coins size={12} className="text-emerald-500"/> Est. Cost</div>
+                <div className="text-xs font-bold text-gray-900">$10 USD</div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium mb-1"><Calendar size={12} className="text-gray-400"/> Payback Period</div>
+                <div className="text-xs font-bold text-gray-900">0.2 years</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer className="pt-8 pb-4 flex flex-col md:flex-row items-center justify-between border-t border-gray-200 mt-8 text-xs text-gray-500 font-medium">
+        <div className="flex items-center gap-2 mb-4 md:mb-0">
+          <Leaf size={14} className="text-emerald-500" />
+          <span className="font-bold text-gray-700">CARBONTRACE</span>
+          <span className="text-gray-400">v1.0.0</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <a href="#" className="hover:text-emerald-600 transition-colors">Privacy</a>
+          <span className="text-gray-300">|</span>
+          <a href="#" className="hover:text-emerald-600 transition-colors">Terms</a>
+          <span className="text-gray-300">|</span>
+          <a href="#" className="hover:text-emerald-600 transition-colors">Contact</a>
+          <span className="text-gray-300">|</span>
+          <span className="flex items-center gap-1">Made for a Sustainable Future <Leaf size={12} className="text-emerald-500" /></span>
+        </div>
+      </footer>
+    </>
+  );
 }

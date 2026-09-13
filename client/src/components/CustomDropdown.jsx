@@ -23,10 +23,10 @@ export default function CustomDropdown({ options, value, onChange, placeholder =
             <button
                 type='button'
                 onClick={() => setIsOpen(!isOpen)}
-                className='w-full bg-[#04120E] border border-[#16362E] text-[#EAF7F2] rounded-xl px-3.5 py-2.5 text-xs focus:border-[#20D68A] outline-none transition-all flex justify-between items-center'
+                className='w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white outline-none transition-all flex justify-between items-center cursor-pointer'
             >
                 <span className='truncate mr-2'>{selectedOption ? selectedOption.label : placeholder}</span>
-                <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#20D68A]' : 'text-[#86A399]'}`} />
+                <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-emerald-600' : 'text-gray-400'}`} />
             </button>
 
             <AnimatePresence>
@@ -36,7 +36,7 @@ export default function CustomDropdown({ options, value, onChange, placeholder =
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -5 }}
                         transition={{ duration: 0.15 }}
-                        className='absolute left-0 top-full z-[9999] w-full mt-1 bg-[#071916] border border-[#16362E] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)] overflow-hidden max-h-60 overflow-y-auto'
+                        className='absolute left-0 top-full z-[9999] w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto'
                     >
                         {options.map((option) => (
                             <button
@@ -46,8 +46,8 @@ export default function CustomDropdown({ options, value, onChange, placeholder =
                                     onChange(option.value);
                                     setIsOpen(false);
                                 }}
-                                className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors hover:bg-[#20D68A]/10 hover:text-[#20D68A] ${
-                                    value === option.value ? 'bg-[#20D68A]/10 text-[#20D68A] font-medium' : 'text-[#86A399]'
+                                className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer ${
+                                    value === option.value ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-600'
                                 }`}
                             >
                                 {option.label}
