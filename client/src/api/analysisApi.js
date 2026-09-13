@@ -119,32 +119,29 @@ function getLocalAnalysisFallback(onboardingData) {
 		if (lower.includes("metal") || lower.includes("steel") || lower.includes("scrap")) {
 			return {
 				id: idx + 1,
-				wasteType: wName,
-				reusabilityPotential: "High (High Demand Raw Material)",
-				rawMaterialSubstitute: "Secondary Steel Ingot & Re-melting Feedstock",
-				targetIndustries: "Electric Arc Foundries, Steel Mills, Metallurgy Plants",
-				estimatedByproductValue: "₹25,000 - ₹35,000 / ton",
-				diversionStrategy: "Segregate scrap types into high-purity briquettes and supply directly to metallurgy foundries as secondary raw material feedstock.",
+				strategyName: "Direct Foundry Sales",
+				strategyDescription: "Segregate scrap types into high-purity briquettes and supply directly to metallurgy foundries as secondary raw material feedstock.",
+				wasteUsedAsRawMaterial: wName,
+				targetOrganizations: "Electric Arc Foundries, Steel Mills, Metallurgy Plants",
+				marketValueRange: "₹25,000 - ₹35,000 / ton",
 			};
 		} else if (lower.includes("ash") || lower.includes("slag") || lower.includes("solid")) {
 			return {
 				id: idx + 1,
-				wasteType: wName,
-				reusabilityPotential: "High (Building Material Feedstock)",
-				rawMaterialSubstitute: "Calcined Clay & Pozzolanic Aggregates",
-				targetIndustries: "Cement Manufacturers, Paver Block Units, Infrastructure Contractors",
-				estimatedByproductValue: "₹1,800 - ₹3,500 / ton",
-				diversionStrategy: "Divert solid industrial residues to eco-cement manufacturing plants to serve as a pozzolanic binder replacement.",
+				strategyName: "Eco-Cement Integration",
+				strategyDescription: "Divert solid industrial residues to eco-cement manufacturing plants to serve as a pozzolanic binder replacement.",
+				wasteUsedAsRawMaterial: wName,
+				targetOrganizations: "Cement Manufacturers, Paver Block Units, Infrastructure Contractors",
+				marketValueRange: "₹1,800 - ₹3,500 / ton",
 			};
 		} else {
 			return {
 				id: idx + 1,
-				wasteType: wName,
-				reusabilityPotential: "Medium to High (Recycled Polymer)",
-				rawMaterialSubstitute: "Refined Plastic Pellets & Packaging Filler",
-				targetIndustries: "Recycled Plastics Industry, Automotive Trim Producers, Packaging Manufacturers",
-				estimatedByproductValue: "₹10,000 - ₹18,000 / ton",
-				diversionStrategy: "Pelletize waste polymers for sales to secondary plastic compounders, achieving 90%+ diversion rate.",
+				strategyName: "B2B Polymer Exchange",
+				strategyDescription: "Pelletize waste polymers for sales to secondary plastic compounders, achieving 90%+ diversion rate.",
+				wasteUsedAsRawMaterial: wName,
+				targetOrganizations: "Recycled Plastics Industry, Automotive Trim Producers, Packaging Manufacturers",
+				marketValueRange: "₹10,000 - ₹18,000 / ton",
 			};
 		}
 	});

@@ -140,33 +140,27 @@ export default function Dashboard() {
 		wasteReuseMatches: [
 			{
 				id: 1,
-				wasteType: "Metal & Industrial Steel Scrap",
-				reusabilityPotential: "High (High Demand Raw Material)",
-				rawMaterialSubstitute: "Secondary Ingot & Re-melting Feedstock",
-				targetIndustries: "Electric Arc Foundries, Steel Rolling Mills, Metallurgy Plants",
-				estimatedByproductValue: "₹25,000 - ₹35,000 / ton",
-				diversionStrategy:
-					"Segregate scrap types into high-purity briquettes and supply directly to metallurgy foundries as secondary raw material feedstock.",
+				strategyName: "Direct Foundry Sales",
+				strategyDescription: "Segregate scrap types into high-purity briquettes and supply directly to metallurgy foundries as secondary raw material feedstock.",
+				wasteUsedAsRawMaterial: "Metal & Industrial Steel Scrap",
+				targetOrganizations: "Electric Arc Foundries, Steel Rolling Mills, Metallurgy Plants",
+				marketValueRange: "₹25,000 - ₹35,000 / ton",
 			},
 			{
 				id: 2,
-				wasteType: "Process Slag & Boiler Fly Ash",
-				reusabilityPotential: "High (Building Material Feedstock)",
-				rawMaterialSubstitute: "Calcined Clay & Pozzolanic Cement Aggregates",
-				targetIndustries: "Cement Manufacturers, Paver Block Units, Infrastructure Contractors",
-				estimatedByproductValue: "₹1,800 - ₹3,500 / ton",
-				diversionStrategy:
-					"Divert solid industrial residues to eco-cement manufacturing plants to serve as a pozzolanic binder replacement.",
+				strategyName: "Eco-Cement Integration",
+				strategyDescription: "Divert solid industrial residues to eco-cement manufacturing plants to serve as a pozzolanic binder replacement.",
+				wasteUsedAsRawMaterial: "Process Slag & Boiler Fly Ash",
+				targetOrganizations: "Cement Manufacturers, Paver Block Units, Infrastructure Contractors",
+				marketValueRange: "₹1,800 - ₹3,500 / ton",
 			},
 			{
 				id: 3,
-				wasteType: "Polymer & Plastic Offcuts",
-				reusabilityPotential: "Medium to High (Recycled Polymer)",
-				rawMaterialSubstitute: "Refined Plastic Pellets & Packaging Filler",
-				targetIndustries: "Recycled Plastics Industry, Automotive Trim Producers, Packaging Manufacturers",
-				estimatedByproductValue: "₹10,000 - ₹18,000 / ton",
-				diversionStrategy:
-					"Pelletize waste polymers for sales to secondary plastic compounders, achieving 90%+ diversion rate.",
+				strategyName: "B2B Polymer Exchange",
+				strategyDescription: "Pelletize waste polymers for sales to secondary plastic compounders, achieving 90%+ diversion rate.",
+				wasteUsedAsRawMaterial: "Polymer & Plastic Offcuts",
+				targetOrganizations: "Recycled Plastics Industry, Automotive Trim Producers, Packaging Manufacturers",
+				marketValueRange: "₹10,000 - ₹18,000 / ton",
 			},
 		],
 		calculationEngine: "Google Gemini AI Engine",
@@ -394,8 +388,27 @@ export default function Dashboard() {
 
 				{/* Main Tab Content Body */}
 				<main className="relative z-10 max-w-7xl w-full mx-auto p-4 sm:p-5 lg:p-6 space-y-6 flex-1">
-					{/* Welcome Header Banner */}
-					<div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-[#071916]/80 backdrop-blur-xl border border-[#16362E] p-4 sm:p-5 rounded-2xl shadow-[0_0_40px_rgba(32,214,138,0.1)]">
+					{(loading || analyzing) ? (
+						<div className="space-y-6 animate-pulse w-full">
+							{/* Skeleton Welcome Header */}
+							<div className="h-[120px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
+							{/* Skeleton Cards Grid */}
+							<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+								<div className="lg:col-span-5 h-[280px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
+								<div className="lg:col-span-7 h-[280px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
+							</div>
+							<div className="h-10 bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full max-w-md"></div>
+							{/* Skeleton recommendations */}
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div className="h-[220px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
+								<div className="h-[220px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
+								<div className="h-[220px] bg-[#071916]/80 border border-[#16362E] rounded-2xl w-full"></div>
+							</div>
+						</div>
+					) : (
+						<>
+							{/* Welcome Header Banner */}
+							<div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-[#071916]/80 backdrop-blur-xl border border-[#16362E] p-4 sm:p-5 rounded-2xl shadow-[0_0_40px_rgba(32,214,138,0.1)]">
 						<div>
 							<div className="flex items-center space-x-1.5 text-[11px] text-[#20D68A] font-mono mb-1">
 								<ShieldCheck size={14} />
@@ -895,43 +908,43 @@ export default function Dashboard() {
 										<div>
 											<div className="flex items-center justify-between mb-2">
 												<span className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-[#20D68A] bg-[#20D68A]/10 border border-[#20D68A]/30 px-2.5 py-0.5 rounded-full">
-													{item.reusabilityPotential || "High Reusability"}
+													Strategy Match
 												</span>
 											</div>
 
 											<h3 className="text-xs sm:text-sm font-bold text-[#EAF7F2] mb-1">
-												{index + 1}. {item.wasteType}
+												{index + 1}. {item.strategyName}
 											</h3>
 											<p className="text-[11px] text-[#86A399] leading-relaxed">
-												{item.diversionStrategy}
+												{item.strategyDescription}
 											</p>
 										</div>
 
 										<div className="space-y-2 pt-2.5 border-t border-[#16362E] font-mono text-[11px] bg-[#04120E]/60 p-3 rounded-xl border border-[#16362E]/40">
 											<div>
 												<span className="text-[9.5px] text-[#86A399] uppercase block font-semibold">
-													Raw Material Substitute:
+													Waste Used as Raw Material:
 												</span>
 												<span className="text-[#20D68A] font-bold block">
-													{item.rawMaterialSubstitute}
+													{item.wasteUsedAsRawMaterial}
 												</span>
 											</div>
 
 											<div className="pt-0.5">
 												<span className="text-[9.5px] text-[#86A399] uppercase block font-semibold">
-													Target Purchasing Organizations:
+													Target Organizations:
 												</span>
 												<span className="text-[#EAF7F2] font-semibold block leading-tight">
-													{item.targetIndustries}
+													{item.targetOrganizations}
 												</span>
 											</div>
 
-											<div className="pt-1 flex justify-between items-center border-t border-[#16362E]/60">
+											<div className="pt-1 flex justify-between items-center border-t border-[#16362E]/60 mt-2 pt-2">
 												<span className="text-[9.5px] text-[#86A399] uppercase">
-													Byproduct Value:
+													Market Value Range:
 												</span>
 												<span className="text-[#38D9E8] font-bold">
-													{item.estimatedByproductValue}
+													{item.marketValueRange}
 												</span>
 											</div>
 										</div>
@@ -939,6 +952,8 @@ export default function Dashboard() {
 								))}
 							</div>
 						</motion.div>
+					)}
+						</>
 					)}
 				</main>
 

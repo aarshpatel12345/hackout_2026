@@ -5,6 +5,8 @@ const { inMemoryOnboardingStore } = require('./onboardingController');
 // In-memory cache for analysis results
 const inMemoryAnalysisStore = new Map();
 
+const Analysis = require('../models/Analysis');
+
 // Helper to retrieve user's onboarding data
 async function getUserOnboardingData(userId) {
   try {
@@ -30,7 +32,17 @@ const calculateAnalysis = async (req, res) => {
     }
 
     const result = await analyzeCarbonFootprint(onboardingData || {});
-    inMemoryAnalysisStore.set(userId, result);
+    
+    // Store in DB if it's a real user
+    if (req.user?._id) {
+      await Analysis.findOneAndUpdate(
+        { user: req.user._id },
+        { ...result, user: req.user._id },
+        { new: true, upsert: true }
+      );
+    } else {
+      inMemoryAnalysisStore.set(userId, result);
+    }
 
     return res.status(200).json({
       success: true,
@@ -40,7 +52,16 @@ const calculateAnalysis = async (req, res) => {
   } catch (error) {
     console.error('Error calculating carbon analysis:', error);
     const fallbackResult = calculateFallbackAnalysis(req.body?.onboardingData || {});
-    inMemoryAnalysisStore.set(userId, fallbackResult);
+    
+    if (req.user?._id) {
+      await Analysis.findOneAndUpdate(
+        { user: req.user._id },
+        { ...fallbackResult, user: req.user._id },
+        { new: true, upsert: true }
+      );
+    } else {
+      inMemoryAnalysisStore.set(userId, fallbackResult);
+    }
 
     return res.status(200).json({
       success: true,
@@ -56,13 +77,28 @@ const calculateAnalysis = async (req, res) => {
 const getAnalysis = async (req, res) => {
   const userId = req.user?._id ? req.user._id.toString() : 'guest-user';
 
-  let analysis = inMemoryAnalysisStore.get(userId);
+  let analysis = null;
+
+  if (req.user?._id) {
+    analysis = await Analysis.findOne({ user: req.user._id });
+  } else {
+    analysis = inMemoryAnalysisStore.get(userId);
+  }
 
   if (!analysis) {
     // Fetch user's onboarding data
     const onboardingData = await getUserOnboardingData(userId);
     analysis = await analyzeCarbonFootprint(onboardingData || {});
-    inMemoryAnalysisStore.set(userId, analysis);
+    
+    if (req.user?._id) {
+      await Analysis.findOneAndUpdate(
+        { user: req.user._id },
+        { ...analysis, user: req.user._id },
+        { new: true, upsert: true }
+      );
+    } else {
+      inMemoryAnalysisStore.set(userId, analysis);
+    }
   }
 
   return res.status(200).json({
