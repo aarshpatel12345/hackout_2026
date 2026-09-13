@@ -318,7 +318,7 @@ export default function OnboardingPage() {
 					animate={{ opacity: 1, y: 0 }}
 					exit={{ opacity: 0, y: -15 }}
 					transition={{ duration: 0.35, ease: "easeOut" }}
-					className="rounded-3xl bg-[#071916]/85 backdrop-blur-2xl border border-[#16362E] p-6 sm:p-8 shadow-[0_0_50px_rgba(32,214,138,0.15)] relative overflow-hidden"
+					className="rounded-3xl bg-[#071916]/85 backdrop-blur-2xl border border-[#16362E] p-6 sm:p-8 shadow-[0_0_50px_rgba(32,214,138,0.15)] relative"
 				>
 					{/* Glowing Top Accent Accent */}
 					<div className="absolute top-0 left-1/2 -translate-x-1/2 w-60 h-[2px] bg-gradient-to-r from-transparent via-[#20D68A] to-transparent blur-xs" />

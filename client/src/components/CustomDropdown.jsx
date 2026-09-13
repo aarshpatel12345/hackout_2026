@@ -36,7 +36,7 @@ export default function CustomDropdown({ options, value, onChange, placeholder =
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -5 }}
                         transition={{ duration: 0.15 }}
-                        className='absolute z-50 w-full mt-1 bg-[#071916] border border-[#16362E] rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto'
+                        className='absolute left-0 top-full z-[9999] w-full mt-1 bg-[#071916] border border-[#16362E] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)] overflow-hidden max-h-60 overflow-y-auto'
                     >
                         {options.map((option) => (
                             <button

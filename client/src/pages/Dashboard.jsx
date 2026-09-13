@@ -28,6 +28,7 @@ import {
 	Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import ParticleBackground from "../components/ParticleBackground";
 import { useAuth } from "../context/AuthContext";
 import { calculateAnalysisApi, getAnalysisApi } from "../api/analysisApi";
@@ -176,6 +177,15 @@ export default function Dashboard() {
 	const annualCO2Saved = Math.round(((data.totalCarbonFootprint || 1240) * roiEfficiency) / 100);
 	const paybackYears = Number((roiInvestment / (annualSavingsMoney || 1)).toFixed(1));
 	const roiPercent = Math.round(((annualSavingsMoney * 5 - roiInvestment) / roiInvestment) * 100);
+
+	const roiChartData = [
+		{ year: 'Y0', balance: -roiInvestment },
+		{ year: 'Y1', balance: -roiInvestment + annualSavingsMoney },
+		{ year: 'Y2', balance: -roiInvestment + annualSavingsMoney * 2 },
+		{ year: 'Y3', balance: -roiInvestment + annualSavingsMoney * 3 },
+		{ year: 'Y4', balance: -roiInvestment + annualSavingsMoney * 4 },
+		{ year: 'Y5', balance: -roiInvestment + annualSavingsMoney * 5 },
+	];
 
 	// Filter recommendations
 	const filteredRecommendations = (data.recommendations || []).filter((rec) => {
@@ -812,6 +822,45 @@ export default function Dashboard() {
 											<p className="text-[10px] text-[#86A399] mt-0.5">Cumulative net return</p>
 										</div>
 									</div>
+								</div>
+							</div>
+
+							{/* ROI DOTTED LINE CHART */}
+							<div className="rounded-2xl bg-[#071916]/85 backdrop-blur-2xl border border-[#16362E] p-5 sm:p-6 shadow-xl">
+								<div className="flex items-center justify-between mb-4">
+									<h3 className="text-xs font-bold text-[#20D68A] uppercase font-mono flex items-center space-x-2">
+										<TrendingUp size={14} />
+										<span>5-Year Cumulative Cash Flow Projection</span>
+									</h3>
+								</div>
+								<div className="w-full h-64">
+									<ResponsiveContainer width="100%" height="100%">
+										<LineChart data={roiChartData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+											<CartesianGrid strokeDasharray="3 3" stroke="#16362E" vertical={false} />
+											<XAxis dataKey="year" stroke="#86A399" fontSize={10} tickLine={false} axisLine={false} />
+											<YAxis
+												stroke="#86A399"
+												fontSize={10}
+												tickLine={false}
+												axisLine={false}
+												tickFormatter={(value) => `$${(value / 1000)}k`}
+											/>
+											<RechartsTooltip
+												contentStyle={{ backgroundColor: '#04120E', borderColor: '#16362E', borderRadius: '8px', fontSize: '11px', color: '#EAF7F2' }}
+												itemStyle={{ color: '#20D68A' }}
+												formatter={(value) => [`$${value.toLocaleString()}`, 'Balance']}
+											/>
+											<Line
+												type="monotone"
+												dataKey="balance"
+												stroke="#20D68A"
+												strokeWidth={2}
+												strokeDasharray="5 5"
+												dot={{ r: 4, fill: '#04120E', stroke: '#38D9E8', strokeWidth: 2 }}
+												activeDot={{ r: 6, fill: '#20D68A', stroke: '#04120E' }}
+											/>
+										</LineChart>
+									</ResponsiveContainer>
 								</div>
 							</div>
 						</motion.div>
