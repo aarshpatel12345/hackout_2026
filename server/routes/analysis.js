@@ -4,6 +4,8 @@ const passport = require('passport');
 const {
   calculateAnalysis,
   getAnalysis,
+  calculateLeakDetector,
+  getLeakDetector,
 } = require('../controllers/analysisController');
 
 // Optional authentication middleware with fallback
@@ -20,5 +22,7 @@ router.use(optionalAuth);
 
 router.post('/calculate', calculateAnalysis);
 router.get('/', getAnalysis);
+router.post('/leak-detector', calculateLeakDetector);
+router.get('/leak-detector', getLeakDetector);
 
 module.exports = router;

@@ -9,6 +9,7 @@ import RegisterPage from "./pages/RegisterPage";
 import AuthPage from "./pages/AuthPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import Dashboard from "./pages/Dashboard";
+import EmissionLeakDetector from "./pages/EmissionLeakDetector";
 import OnboardingPage from "./pages/OnboardingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
@@ -31,6 +32,7 @@ function App() {
 					<Route element={<ProtectedRoute />}>
 						<Route path="/onboarding" element={<OnboardingPage />} />
 						<Route path="/dashboard" element={<Dashboard />} />
+						<Route path="/leak-detector" element={<EmissionLeakDetector />} />
 					</Route>
 
 					<Route path="*" element={<Navigate to="/login" replace />} />

@@ -266,6 +266,14 @@ export default function Dashboard() {
 							<Recycle size={15} className={`shrink-0 ${activeTab === "waste" ? "text-[#20D68A]" : ""}`} />
 							<span className="whitespace-nowrap">Waste Feedstock Exchange</span>
 						</button>
+
+						<button
+							onClick={() => navigate("/leak-detector")}
+							className={`w-full flex items-center space-x-2 px-2.5 py-2 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer whitespace-nowrap text-[#86A399] hover:text-[#EAF7F2] hover:bg-[#071916]/80`}
+						>
+							<Flame size={15} className="shrink-0 text-[#FF5C5C]" />
+							<span className="whitespace-nowrap">Emission Leak Detector</span>
+						</button>
 					</nav>
 				</div>
 
@@ -382,6 +390,13 @@ export default function Dashboard() {
 							}`}
 						>
 							Waste Exchange
+						</button>
+						<button
+							onClick={() => navigate("/leak-detector")}
+							className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap text-[#86A399] bg-[#04120E] flex items-center gap-1`}
+						>
+							<Flame size={12} className="text-[#FF5C5C]" />
+							Leak Detector
 						</button>
 					</div>
 				</header>
